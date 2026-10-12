@@ -80,7 +80,8 @@
   }
 
   function tip(a) {
-    return "<b>" + ar(a.id) + "</b> · " + a.type + "<br>" + m2(a.area) + " · " + nf0.format(a.heirs) + " ورثة<br>معطل منذ " + ar(a.since) + " · " + a.reason;
+    return "<b>" + ar(a.id) + "</b> · " + a.type + " · " + (a.city || D.merge.city) +
+      "<br>" + m2(a.area) + " · " + nf0.format(a.heirs) + " ورثة<br>معطل منذ " + ar(a.since) + " · " + a.reason;
   }
 
   // =====================================================
@@ -136,7 +137,7 @@
           const on = isActive(a);
           return '<article class="acard' + (on ? " on" : "") + '">' +
             '<div class="acard-media" style="background-image:url(\'' + thumbURL(a) + '\')"><span class="tag ' + TAGC[a.type] + '">' + a.type + "</span></div>" +
-            '<div class="acard-body"><div class="acard-id">قطعة ' + ar(a.id) + '</div><div class="acard-area">' + m2(a.area) + "</div>" +
+            '<div class="acard-body"><div class="acard-id">قطعة ' + ar(a.id) + " · " + (a.city || D.merge.city) + '</div><div class="acard-area">' + m2(a.area) + "</div>" +
             '<p class="acard-meta">' + nf0.format(a.heirs) + " ورثة · معطل منذ " + ar(a.since) + "<br>السبب: " + a.reason + "</p>" +
             '<div class="acard-status">' + (on ? "مفعّل عبر حيازة" : "معطل") + "</div></div></article>";
         }).join("")
@@ -151,12 +152,12 @@
           ? { color: COL.line, weight: 1.5, fillColor: col, fillOpacity: isActive(a) ? 0.7 : 0.6 }
           : { color: COL.dim, weight: 1, opacity: 0.45, fillColor: COL.dim, fillOpacity: 0.12 };
         L.polygon(shapeOf(a), style).bindTooltip(tip(a), { direction: "top" }).addTo(dashLayer);
-        if (a.area < 20000) {
-          L.circleMarker(centerOf(a), {
-            radius: 6, color: COL.line, weight: 1.5, opacity: on ? 1 : 0.45,
-            fillColor: on ? col : COL.dim, fillOpacity: on ? 0.95 : 0.3
-          }).bindTooltip(tip(a), { direction: "top" }).addTo(dashLayer);
-        }
+        // على مقياس المنطقة تبدو القطع نقاطاً، فنرسم علامة ظاهرة فوق كل أصل
+        L.circleMarker(centerOf(a), {
+          radius: a.type === "زراعي" ? 8 : 6,
+          color: COL.line, weight: 1.5, opacity: on ? 1 : 0.4,
+          fillColor: on ? col : COL.dim, fillOpacity: on ? 0.95 : 0.25
+        }).bindTooltip(tip(a), { direction: "top" }).addTo(dashLayer);
       });
     }
   }
