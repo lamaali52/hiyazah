@@ -69,7 +69,8 @@
   }
 
   function tip(a) {
-    return "<b>" + ar(a.id) + "</b> · " + a.type + "<br>" + m2(a.area) + " · " + nf0.format(a.heirs) + " ورثة<br>معطل منذ " + ar(a.since) + " · " + a.reason;
+    return "<b>" + ar(a.id) + "</b> · " + a.type + " · " + (a.city || D.merge.city) +
+      "<br>" + m2(a.area) + " · " + nf0.format(a.heirs) + " ورثة<br>معطل منذ " + ar(a.since) + " · " + a.reason;
   }
 
   // =====================================================
@@ -120,11 +121,11 @@
     const rows = list.slice().sort((a, b) => (isActive(a) - isActive(b)) || a.id.localeCompare(b.id));
     $("assetRows").innerHTML = rows.length
       ? rows.map((a) =>
-          "<tr><td>" + ar(a.id) + "</td><td>" + a.type + "</td><td>" + m2(a.area) + "</td><td>" + nf0.format(a.heirs) +
-          "</td><td>" + ar(a.since) + "</td><td>" + a.reason + "</td><td>" +
+          "<tr><td>" + ar(a.id) + "</td><td>" + (a.city || D.merge.city) + "</td><td>" + a.type + "</td><td>" + m2(a.area) +
+          "</td><td>" + nf0.format(a.heirs) + "</td><td>" + ar(a.since) + "</td><td>" + a.reason + "</td><td>" +
           (isActive(a) ? '<span class="pill active">مفعّل</span>' : '<span class="pill idle">معطل</span>') + "</td></tr>"
         ).join("")
-      : '<tr><td colspan="7" class="empty">لا توجد أصول مطابقة لهذا التصنيف</td></tr>';
+      : '<tr><td colspan="8" class="empty">لا توجد أصول مطابقة لهذا التصنيف</td></tr>';
 
     if (dashMap) {
       dashLayer.clearLayers();
@@ -135,12 +136,12 @@
           ? { color: COL.line, weight: 1.5, fillColor: col, fillOpacity: 0.62 }
           : { color: COL.dim, weight: 1, opacity: 0.45, fillColor: COL.dim, fillOpacity: 0.12 };
         L.polygon(shapeOf(a), style).bindTooltip(tip(a), { direction: "top" }).addTo(dashLayer);
-        if (a.area < 20000) {
-          L.circleMarker(centerOf(a), {
-            radius: 6, color: COL.line, weight: 1.5, opacity: on ? 1 : 0.45,
-            fillColor: on ? col : COL.dim, fillOpacity: on ? 0.95 : 0.3
-          }).bindTooltip(tip(a), { direction: "top" }).addTo(dashLayer);
-        }
+        // على مقياس المنطقة تبدو القطع نقاطاً، فنرسم علامة ظاهرة فوق كل أصل
+        L.circleMarker(centerOf(a), {
+          radius: a.type === "زراعي" ? 8 : 6,
+          color: COL.line, weight: 1.5, opacity: on ? 1 : 0.4,
+          fillColor: on ? col : COL.dim, fillOpacity: on ? 0.95 : 0.25
+        }).bindTooltip(tip(a), { direction: "top" }).addTo(dashLayer);
       });
     }
   }
