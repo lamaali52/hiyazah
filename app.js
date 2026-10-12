@@ -43,12 +43,11 @@
   }
   function shapeOf(a) {
     if (rects[a.id]) return rectLL(D.merge.origin, rects[a.id]);
-    const s = Math.sqrt(a.area);
-    return rectLL(D.scope.center, { x0: a.pos.dx - s / 2, x1: a.pos.dx + s / 2, y0: -a.pos.dy - s / 2, y1: -a.pos.dy + s / 2 });
+    return a.shape;
   }
   function centerOf(a) {
     const p = shapeOf(a);
-    return [(p[0][0] + p[2][0]) / 2, (p[0][1] + p[2][1]) / 2];
+    return [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
   }
 
   // الألوان تُقرأ من متغيرات CSS في index.html
