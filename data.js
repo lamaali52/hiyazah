@@ -7,9 +7,9 @@ window.HIYAZAH = {
   // النطاق المعروض في لوحة الرصد
   // لنقل الخريطة إلى منطقة مزارع أخرى: غيّر center و merge.origin بنفس المقدار
   scope: {
-    name: "نطاق البدائع",
+    name: "نطاق عنيزة",
     region: "القصيم",
-    center: [25.995, 43.74]
+    center: [26.07, 43.96]
   },
 
   // العائد السنوي المقدّر لكل متر مربع حسب نوع الأصل (ريال) — افتراض
@@ -27,8 +27,10 @@ window.HIYAZAH = {
 
   // تخطيط القطع الست في شاشة الدمج: صفّان من القطع المتلاصقة
   // عرض كل قطعة يُحسب من مساحتها ÷ ارتفاع الصف
+  // origin = الركن الشمالي الغربي للكتلة، فوق بساتين النخيل القديمة المتجزئة جنوب غرب عنيزة
   merge: {
-    origin: [25.9982, 43.7348],
+    city: "عنيزة",
+    origin: [26.0527, 43.9531],
     rowHeightM: 350,
     rows: [
       ["042", "043", "044"],
@@ -55,21 +57,21 @@ window.HIYAZAH = {
       mix: { wife: true, mother: false, father: false, sons: 2, daughters: 2 } },
 
     // —— أصول زراعية أخرى ——
-    { id: "031", type: "زراعي", area: 142000, heirs: 8, since: 2015, reason: "مياه", pos: { dx: -1800, dy: 900 } },
-    { id: "033", type: "زراعي", area: 96000, heirs: 5, since: 2016, reason: "مياه", pos: { dx: -2200, dy: -400 } },
-    { id: "035", type: "زراعي", area: 178000, heirs: 11, since: 2014, reason: "مياه", pos: { dx: 2100, dy: 1300 } },
-    { id: "038", type: "زراعي", area: 74000, heirs: 4, since: 2018, reason: "مياه", pos: { dx: 2600, dy: -900 } },
-    { id: "051", type: "زراعي", area: 131000, heirs: 7, since: 2019, reason: "ورثة", pos: { dx: 1200, dy: -1700 } },
+    { id: "031", type: "زراعي", area: 142000, heirs: 8, since: 2015, reason: "مياه", pos: { dx: -3100, dy: 1400 } },
+    { id: "033", type: "زراعي", area: 96000, heirs: 5, since: 2016, reason: "مياه", pos: { dx: -4000, dy: 1070 } },
+    { id: "035", type: "زراعي", area: 178000, heirs: 11, since: 2014, reason: "مياه", pos: { dx: -1100, dy: 765 } },
+    { id: "038", type: "زراعي", area: 74000, heirs: 4, since: 2018, reason: "مياه", pos: { dx: 1460, dy: -875 } },
+    { id: "051", type: "زراعي", area: 131000, heirs: 7, since: 2019, reason: "ورثة", pos: { dx: -1550, dy: -1420 } },
 
     // —— أصول سكنية ——
-    { id: "112", type: "سكني", area: 3200, heirs: 9, since: 2016, reason: "ورثة", pos: { dx: -700, dy: -1300 } },
-    { id: "115", type: "سكني", area: 2400, heirs: 6, since: 2020, reason: "ورثة", pos: { dx: -450, dy: -1450 } },
-    { id: "118", type: "سكني", area: 4800, heirs: 12, since: 2013, reason: "ورثة", pos: { dx: -950, dy: -1550 } },
-    { id: "121", type: "سكني", area: 2900, heirs: 3, since: 2021, reason: "عدم اهتمام", pos: { dx: -300, dy: -1150 } },
+    { id: "112", type: "سكني", area: 3200, heirs: 9, since: 2016, reason: "ورثة", pos: { dx: 1090, dy: 400 } },
+    { id: "115", type: "سكني", area: 2400, heirs: 6, since: 2020, reason: "ورثة", pos: { dx: 1640, dy: 120 } },
+    { id: "118", type: "سكني", area: 4800, heirs: 12, since: 2013, reason: "ورثة", pos: { dx: 540, dy: 850 } },
+    { id: "121", type: "سكني", area: 2900, heirs: 3, since: 2021, reason: "عدم اهتمام", pos: { dx: 2370, dy: -1610 } },
 
     // —— أصول تجارية ——
-    { id: "205", type: "تجاري", area: 6500, heirs: 7, since: 2017, reason: "ورثة", pos: { dx: 150, dy: -1250 } },
-    { id: "208", type: "تجاري", area: 4200, heirs: 5, since: 2019, reason: "ورثة", pos: { dx: 400, dy: -1400 } },
-    { id: "211", type: "تجاري", area: 8100, heirs: 4, since: 2022, reason: "عدم اهتمام", pos: { dx: 650, dy: -1250 } }
+    { id: "205", type: "تجاري", area: 6500, heirs: 7, since: 2017, reason: "ورثة", pos: { dx: 2140, dy: 400 } },
+    { id: "208", type: "تجاري", area: 4200, heirs: 5, since: 2019, reason: "ورثة", pos: { dx: -90, dy: 1850 } },
+    { id: "211", type: "تجاري", area: 8100, heirs: 4, since: 2022, reason: "عدم اهتمام", pos: { dx: 3740, dy: -420 } }
   ]
 };

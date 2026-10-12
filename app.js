@@ -28,7 +28,7 @@
 
   const state = {
     typeF: "الكل", reasonF: "الكل",
-    selected: [], activated: {}, blockFormed: false,
+    selected: [], activated: {}, blockFormed: false, fresh: false,
     distId: mergeIds[0], mix: null, gross: 0
   };
   const isActive = (a) => !!state.activated[a.id];
@@ -51,7 +51,22 @@
     return [(p[0][0] + p[2][0]) / 2, (p[0][1] + p[2][1]) / 2];
   }
 
-  const COL = { idle: "#C2492E", active: "#2F9A50", sel: "#F2C14E", dim: "#8C8C7C", line: "#FFFDF8" };
+  const COL = { idle: "#393939", active: "#F2C14E", sel: "#FFFFFF", dim: "#9A9A9A", line: "#FFFFFF" };
+
+  const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/";
+  function tileURL(a) {
+    const c = centerOf(a), z = a.area < 20000 ? 18 : 16, n = Math.pow(2, z), r = (c[0] * Math.PI) / 180;
+    const x = Math.floor(((c[1] + 180) / 360) * n);
+    const y = Math.floor(((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n);
+    return ESRI + "tile/" + z + "/" + y + "/" + x;
+  }
+  function heroImage(el, pts) {
+    const lat = pts.map((p) => p[0]), lon = pts.map((p) => p[1]);
+    const s = Math.min(...lat), n = Math.max(...lat), w = Math.min(...lon), e = Math.max(...lon);
+    const pl = (n - s) * 0.25, po = (e - w) * 0.25;
+    el.style.backgroundImage = "url('" + ESRI + "export?bbox=" + [w - po, s - pl, e + po, n + pl].join(",") +
+      "&bboxSR=4326&imageSR=3857&size=1600,700&format=jpg&f=image')";
+  }
 
   function makeMap(el) {
     if (!hasL) {
@@ -77,6 +92,7 @@
   // =====================================================
   const TYPES = ["الكل", "زراعي", "سكني", "تجاري"];
   const REASONS = ["الكل", "ورثة", "مياه", "عدم اهتمام"];
+  const TAGC = { "زراعي": "t-agr", "سكني": "t-res", "تجاري": "t-com" };
   let dashMap = null, dashLayer = null;
 
   const matches = (a, t, r) => (t === "الكل" || a.type === t) && (r === "الكل" || a.reason === r);
@@ -117,14 +133,18 @@
       note.textContent = "فُعّل عبر حيازة: " + nf0.format(act.length) + " أصول · " + sar(act.reduce((s, a) => s + rentOf(a), 0)) + " سنوياً";
     } else note.hidden = true;
 
-    const rows = list.slice().sort((a, b) => (isActive(a) - isActive(b)) || a.id.localeCompare(b.id));
-    $("assetRows").innerHTML = rows.length
-      ? rows.map((a) =>
-          "<tr><td>" + ar(a.id) + "</td><td>" + a.type + "</td><td>" + m2(a.area) + "</td><td>" + nf0.format(a.heirs) +
-          "</td><td>" + ar(a.since) + "</td><td>" + a.reason + "</td><td>" +
-          (isActive(a) ? '<span class="pill active">مفعّل</span>' : '<span class="pill idle">معطل</span>') + "</td></tr>"
-        ).join("")
-      : '<tr><td colspan="7" class="empty">لا توجد أصول مطابقة لهذا التصنيف</td></tr>';
+    const rows = list.slice().sort((a, b) => (isActive(b) - isActive(a)) || a.id.localeCompare(b.id));
+    $("assetCount").textContent = nf0.format(rows.length) + " أصول";
+    $("assetCards").innerHTML = rows.length
+      ? rows.map((a) => {
+          const on = isActive(a);
+          return '<article class="acard' + (on ? " on" : "") + (on && state.fresh ? " fresh" : "") + '">' +
+            '<div class="acard-media" style="background-image:url(\'' + tileURL(a) + '\')"><span class="tag ' + TAGC[a.type] + '">' + a.type + "</span></div>" +
+            '<div class="acard-body"><div class="acard-id">قطعة ' + ar(a.id) + '</div><div class="acard-area">' + m2(a.area) + "</div>" +
+            '<p class="acard-meta">' + nf0.format(a.heirs) + " ورثة · معطل منذ " + ar(a.since) + "<br>السبب: " + a.reason + "</p>" +
+            '<div class="acard-status">' + (on ? "مفعّل عبر حيازة" : "معطل") + "</div></div></article>";
+        }).join("")
+      : '<div class="empty">لا توجد أصول مطابقة لهذا التصنيف</div>';
 
     if (dashMap) {
       dashLayer.clearLayers();
@@ -132,7 +152,7 @@
         const on = matches(a, state.typeF, state.reasonF);
         const col = isActive(a) ? COL.active : COL.idle;
         const style = on
-          ? { color: COL.line, weight: 1.5, fillColor: col, fillOpacity: 0.62 }
+          ? { color: COL.line, weight: 1.5, fillColor: col, fillOpacity: isActive(a) ? 0.7 : 0.6 }
           : { color: COL.dim, weight: 1, opacity: 0.45, fillColor: COL.dim, fillOpacity: 0.12 };
         L.polygon(shapeOf(a), style).bindTooltip(tip(a), { direction: "top" }).addTo(dashLayer);
         if (a.area < 20000) {
@@ -213,7 +233,7 @@
     else if (!s.viable) { cls = "bad"; txt = "دون حد الجدوى — ينقص " + m2(D.viabilityMinM2 - s.area); }
     else { cls = "ok"; txt = "كتلة قابلة للطرح"; }
     const st = $("mStatus");
-    st.className = "status " + cls;
+    st.className = "status " + cls + (state.blockFormed ? " formed" : "");
     st.textContent = txt;
 
     $("mIncome").textContent = s.ok ? sar(s.income) : "لا يوجد مشغّل لهذه المساحة";
@@ -227,9 +247,9 @@
     if (mergeMap) {
       mergeIds.forEach((id) => {
         const on = s.ids.includes(id), lyr = mergeLayers[id];
-        if (state.blockFormed && on) lyr.setStyle({ color: COL.line, weight: 1.2, opacity: 0.9, dashArray: "5 6", fillColor: COL.active, fillOpacity: 0.5 });
-        else if (on) lyr.setStyle({ color: COL.sel, weight: 3, opacity: 1, dashArray: null, fillColor: COL.sel, fillOpacity: 0.4 });
-        else lyr.setStyle({ color: COL.line, weight: 1.5, opacity: 0.9, dashArray: null, fillColor: COL.idle, fillOpacity: 0.32 });
+        if (state.blockFormed && on) lyr.setStyle({ color: COL.line, weight: 1.2, opacity: 0.9, dashArray: "5 6", fillColor: COL.active, fillOpacity: 0.55 });
+        else if (on) lyr.setStyle({ color: COL.sel, weight: 3, opacity: 1, dashArray: null, fillColor: COL.sel, fillOpacity: 0.3 });
+        else lyr.setStyle({ color: COL.line, weight: 1.5, opacity: 0.9, dashArray: null, fillColor: COL.idle, fillOpacity: 0.4 });
       });
     }
   }
@@ -238,6 +258,7 @@
     const s = mergeStats();
     if (!s.ok) return;
     state.blockFormed = true;
+    state.fresh = true;
     state.activated = {};
     s.ids.forEach((id) => (state.activated[id] = true));
 
@@ -271,7 +292,7 @@
   // =====================================================
   //  ٣ — توزيع العائد
   // =====================================================
-  const KCOL = { wife: "#A65F3A", mother: "#C8962E", father: "#56708F", son: "#3F5A2E", daughter: "#86A85C" };
+  const KCOL = { wife: "#393939", mother: "#7A7A7A", father: "#BDBDBD", son: "#F2C14E", daughter: "#F8DE9E" };
 
   function initDist() {
     const sel = $("dParcel");
@@ -359,6 +380,7 @@
       $("panel-" + t).hidden = t !== name;
       $("tab-" + t).setAttribute("aria-selected", t === name ? "true" : "false");
     });
+    if (name === "dashboard") state.fresh = false;
     if (name === "dashboard" && dashMap) {
       dashMap.invalidateSize();
       if (!fitted.d) { dashMap.fitBounds(L.latLngBounds(D.assets.flatMap(shapeOf)).pad(0.08)); fitted.d = true; }
@@ -371,6 +393,11 @@
   }
 
   // ---------- تشغيل ----------
+  $("scopeTitle").textContent = D.scope.name + " — " + D.scope.region;
+  $("mergeCity").textContent = D.merge.city;
+  heroImage($("hero-dashboard"), D.assets.flatMap(shapeOf));
+  heroImage($("hero-merge"), mergeIds.flatMap((id) => shapeOf(byId[id])));
+  heroImage($("hero-distribute"), shapeOf(byId[mergeIds[0]]));
   document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
   dashMap = makeMap($("dashMap"));
   if (dashMap) dashLayer = L.layerGroup().addTo(dashMap);

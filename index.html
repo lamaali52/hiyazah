@@ -4,175 +4,222 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>حيازة — النموذج الأولي</title>
-<meta name="theme-color" content="#2B2B2B">
+<meta name="theme-color" content="#393939">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <style>
-/* طابع ثقافي معاصر: فحمي وأبيض، عناوين عريضة، زوايا حادة، فواصل رفيعة */
+/* فحمي وأبيض ولون إبراز واحد (ذهبي)، عناوين كبيرة، زوايا حادة بلا ظلال */
 :root{
-  --ink:#151515;
-  --charcoal:#2B2B2B;
-  --charcoal-2:#393939;
+  --charcoal:#393939;
+  --ink:#393939;
   --paper:#FFFFFF;
-  --bg:#F5F4F0;
-  --line:#E2DFD8;
-  --muted:#6F6C66;
-  --brand:#1F6B4A;
-  --brand-l:#E2F0E8;
-  --brick:#C2492E;
-  --brick-l:#F8E4DE;
-  --green:#2F9A50;
-  --amber:#A8730E;
-  --amber-l:#F6EAD0;
-  --gold:#F2C14E;
+  --soft:#F4F4F4;
+  --line:#E3E3E3;
+  --muted:#707070;
+  --accent:#F2C14E;
+  --ease:cubic-bezier(.2,.7,.2,1);
   --display:"Readex Pro","IBM Plex Sans Arabic",Tahoma,sans-serif;
   --body:"IBM Plex Sans Arabic",Tahoma,sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:var(--body);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.6;padding-bottom:46px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65;padding-bottom:44px;-webkit-font-smoothing:antialiased}
 button{font:inherit}
 
 /* ---------- الشريط العلوي ---------- */
-.top{background:var(--charcoal);color:#fff;position:sticky;top:0;z-index:1000}
-.top-in{max-width:1320px;margin:0 auto;padding:0 28px;display:flex;align-items:stretch;justify-content:space-between;gap:24px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:12px;padding:14px 0}
+.top{position:sticky;top:0;z-index:1000;background:var(--paper);border-bottom:1px solid var(--line)}
+.top-in{max-width:1400px;margin:0 auto;padding:0 40px;height:56px;display:flex;align-items:stretch;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:12px}
 .brand svg{flex:0 0 auto}
-.brand-name{font-family:var(--display);font-size:24px;font-weight:700;line-height:1;letter-spacing:-.01em}
-.brand-sub{font-size:12px;color:#BDBAB3;margin-top:4px}
+.brand-name{font-family:var(--display);font-size:20px;font-weight:700;line-height:1}
+.brand-sub{font-size:13px;color:var(--muted);border-inline-start:1px solid var(--line);padding-inline-start:12px;line-height:1.2}
 .tabs{display:flex;gap:4px}
-.tabs button{position:relative;color:#CFCCC5;background:none;border:0;padding:0 18px;cursor:pointer;font-family:var(--display);font-weight:500;font-size:15px;min-height:60px}
-.tabs button:hover{color:#fff}
-.tabs button[aria-selected="true"]{color:#fff}
-.tabs button[aria-selected="true"]::after{content:"";position:absolute;inset-inline:18px;bottom:0;height:3px;background:var(--gold)}
-.tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:-4px}
+.tabs button{position:relative;background:none;border:0;padding:0 18px;cursor:pointer;color:var(--muted);font-family:var(--display);font-weight:500;font-size:15px;transition:color .25s}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--ink);font-weight:600}
+.tabs button::after{content:"";position:absolute;inset-inline:18px;bottom:-1px;height:3px;background:var(--accent);transform:scaleX(0);transition:transform .4s var(--ease)}
+.tabs button[aria-selected="true"]::after{transform:scaleX(1)}
+.tabs button:focus-visible{outline:2px solid var(--ink);outline-offset:-6px}
 
-/* ---------- رأس كل شاشة ---------- */
-.hero{background:var(--charcoal-2);color:#fff}
-.hero-in{max-width:1320px;margin:0 auto;padding:30px 28px 28px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
-.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--gold);margin-bottom:6px}
-h1{font-family:var(--display);font-weight:700;font-size:34px;line-height:1.2;margin:0;text-wrap:balance;letter-spacing:-.01em}
-.hero p{margin:8px 0 0;color:#CFCCC5;max-width:60ch}
-.active-note{background:var(--green);color:#fff;font-weight:600;padding:9px 16px;font-size:14px}
+/* ---------- الواجهة الرئيسية لكل شاشة ---------- */
+.hero{position:relative;background:var(--charcoal) center/cover no-repeat;color:#fff;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(57,57,57,.58) 0%,rgba(57,57,57,.92) 100%)}
+.hero-in{position:relative;max-width:1400px;margin:0 auto;padding:120px 40px 96px}
+.eyebrow{display:flex;align-items:center;gap:14px;font-family:var(--display);font-size:14px;font-weight:600;color:var(--accent);margin-bottom:24px}
+.eyebrow::before{content:"";width:36px;height:2px;background:var(--accent)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(38px,6vw,88px);line-height:1.18;margin:0;max-width:20ch;text-wrap:balance}
+.hero p{margin:32px 0 0;font-size:clamp(17px,1.5vw,21px);color:rgba(255,255,255,.78);max-width:54ch}
+.active-note{display:inline-block;margin-top:36px;background:var(--accent);color:var(--charcoal);font-family:var(--display);font-weight:600;padding:10px 18px}
+.active-note[hidden]{display:none}
 
-main{max-width:1320px;margin:0 auto;padding:24px 28px}
+main{max-width:1400px;margin:0 auto;padding:88px 40px 112px}
 .panel[hidden]{display:none}
+.section{margin-top:104px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:32px}
+.section-title{font-family:var(--display);font-size:clamp(26px,3vw,40px);font-weight:700;line-height:1.25;margin:0}
+.section-count{font-size:15px;color:var(--muted)}
+
+/* ---------- انتقالات هادئة ---------- */
+.panel:not([hidden]) .hero-in > *{animation:rise .8s var(--ease) both}
+.panel:not([hidden]) .hero-in > :nth-child(2){animation-delay:.08s}
+.panel:not([hidden]) .hero-in > :nth-child(3){animation-delay:.16s}
+.panel:not([hidden]) .hero-in > :nth-child(4){animation-delay:.24s}
+.panel:not([hidden]) main{animation:fade .7s .15s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}}
+@keyframes fade{from{opacity:0}}
 
 /* ---------- أرقام ---------- */
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);background:var(--paper);border:1px solid var(--line);margin-bottom:22px}
-.kpi{padding:20px 24px}
-.kpi + .kpi{border-inline-start:1px solid var(--line)}
-.kpi-label{font-size:13px;color:var(--muted);font-weight:500}
-.kpi-val{font-family:var(--display);font-size:38px;font-weight:700;line-height:1.15;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:4px}
-.kpi-val.red{color:var(--brick)}
-.kpi-sub{font-size:13px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;margin-bottom:88px}
+.kpi{border-top:2px solid var(--ink);padding-top:20px}
+.kpi-label{font-size:15px;color:var(--muted);font-weight:500}
+.kpi-val{font-family:var(--display);font-size:clamp(36px,4.2vw,60px);font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;margin-top:10px}
+.kpi-sub{font-size:14px;color:var(--muted);margin-top:4px}
 
 /* ---------- فلاتر ---------- */
-.filters{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:14px}
-.fgroup{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.flabel{font-family:var(--display);font-size:14px;font-weight:600}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:1px solid var(--ink);background:transparent;color:var(--ink);padding:6px 14px;cursor:pointer;font-size:14px;font-weight:500;border-radius:0}
-.chip:hover{background:var(--paper)}
+.filters{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:32px}
+.fgroup{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.flabel{font-family:var(--display);font-size:15px;font-weight:600}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 16px;cursor:pointer;font-size:14px;font-weight:500;border-radius:0;transition:background .25s,color .25s,border-color .25s}
+.chip:hover{border-color:var(--ink)}
 .chip .n{font-size:12px;color:var(--muted);margin-inline-start:8px;font-variant-numeric:tabular-nums}
-.chip[aria-pressed="true"]{background:var(--ink);color:#fff}
-.chip[aria-pressed="true"] .n{color:#BDBAB3}
-.chip:focus-visible,.pbtn:focus-visible,.btn:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip[aria-pressed="true"] .n{color:rgba(255,255,255,.7)}
+.chip:focus-visible,.pbtn:focus-visible,.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
 /* ---------- خرائط ---------- */
-.map-wrap{position:relative;margin-bottom:22px}
-.map{height:460px;border:1px solid var(--line);background:#C9BC9C}
-.map-tall{height:560px}
-.map.tiles-off,.map.map-fallback{background:#E9E0C9 repeating-linear-gradient(45deg,transparent 0 14px,rgba(0,0,0,.035) 14px 15px)}
+.map-wrap{position:relative}
+.map{height:540px;background:#5B5A52}
+.map-tall{height:620px}
+.map.tiles-off,.map.map-fallback{background:#EDEDED repeating-linear-gradient(45deg,transparent 0 14px,rgba(0,0,0,.04) 14px 15px)}
 .map-msg{margin:0;padding:40px;text-align:center;color:var(--muted)}
 .leaflet-container{direction:ltr;font-family:var(--body)}
-.leaflet-tooltip{direction:rtl;font-family:var(--body);font-size:13px;border-radius:0}
-.leaflet-tooltip.plabel{background:transparent;border:0;box-shadow:none;color:#fff;font-family:var(--display);font-weight:700;font-size:15px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.leaflet-tooltip{direction:rtl;font-family:var(--body);font-size:13px;border-radius:0;box-shadow:none;border:1px solid var(--line)}
+.leaflet-tooltip.plabel{background:transparent;border:0;color:#fff;font-family:var(--display);font-weight:700;font-size:15px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
 .leaflet-tooltip.plabel::before{display:none}
-.legend{position:absolute;bottom:12px;right:12px;z-index:500;background:var(--paper);padding:8px 14px;display:flex;gap:16px;font-size:13px;flex-wrap:wrap}
+.leaflet-interactive{transition:fill .45s ease,fill-opacity .45s ease,stroke .45s ease,stroke-opacity .45s ease}
+.legend{position:absolute;bottom:14px;right:14px;z-index:500;background:var(--paper);padding:9px 16px;display:flex;gap:18px;font-size:13px;flex-wrap:wrap}
 .sw{display:inline-block;width:11px;height:11px;margin-inline-end:7px;vertical-align:-1px}
-.sw.idle{background:var(--brick)}.sw.active{background:var(--green)}.sw.dim{background:#8C8C7C;opacity:.45}
-.block-outline{animation:drawIn .8s ease-out}
-@keyframes drawIn{from{stroke-opacity:0}}
+.sw.idle{background:var(--charcoal)}.sw.active{background:var(--accent)}.sw.dim{background:#A3A3A3;opacity:.6}
+.block-outline{animation:drawIn 1s var(--ease)}
+@keyframes drawIn{from{stroke-opacity:0;stroke-width:14}}
 
-/* ---------- جداول ---------- */
-.table-wrap{overflow-x:auto;background:var(--paper);border:1px solid var(--line)}
-.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:620px}
-.tbl th{text-align:right;padding:12px 16px;font-family:var(--display);font-weight:600;font-size:13px;color:var(--muted);border-bottom:2px solid var(--ink)}
-.tbl td{padding:11px 16px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
-.tbl tr.total td{border-top:2px solid var(--ink);font-weight:700}
-.tbl .empty{text-align:center;color:var(--muted);padding:28px}
-.pill{display:inline-block;padding:2px 10px;font-size:12px;font-weight:600}
-.pill.idle{background:var(--brick-l);color:var(--brick)}
-.pill.active{background:var(--brand-l);color:var(--brand)}
-.section-title{font-family:var(--display);font-size:18px;font-weight:600;margin:0 0 12px}
+/* ---------- بطاقات الأصول ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:36px 24px}
+.acard{background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;transition:border-color .25s}
+.acard:hover{border-color:var(--ink)}
+.acard-media{position:relative;aspect-ratio:16/9;background:var(--charcoal) center/cover no-repeat}
+.acard.on .acard-media::after{content:"";position:absolute;inset:auto 0 0 0;height:5px;background:var(--accent)}
+.tag{position:absolute;top:14px;inset-inline-start:14px;font-family:var(--display);font-size:12px;font-weight:600;padding:3px 10px;line-height:1.5}
+.tag.t-agr{background:var(--accent);color:var(--charcoal)}
+.tag.t-res{background:#fff;color:var(--charcoal)}
+.tag.t-com{background:var(--charcoal);color:#fff;border:1px solid rgba(255,255,255,.7)}
+.acard-body{padding:20px 22px 22px;display:flex;flex-direction:column;gap:4px;flex:1}
+.acard-id{font-family:var(--display);font-weight:600;font-size:14px;color:var(--muted)}
+.acard-area{font-family:var(--display);font-size:28px;font-weight:700;line-height:1.25;font-variant-numeric:tabular-nums}
+.acard-meta{font-size:14px;color:var(--muted);margin:6px 0 0}
+.acard-status{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);font-size:14px;font-weight:600;display:flex;align-items:center;gap:9px}
+.acard-meta + .acard-status{margin-top:16px}
+.acard-status::before{content:"";width:9px;height:9px;background:var(--ink)}
+.acard.on .acard-status::before{background:var(--accent)}
+.acard.fresh{animation:rise .8s var(--ease) both}
+.cards .empty{grid-column:1/-1;padding:48px;text-align:center;color:var(--muted);border:1px solid var(--line)}
+
+/* ---------- كتل البطاقات الجانبية ---------- */
+.block-head{background:var(--charcoal);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-family:var(--display);font-weight:600;font-size:16px}
+.block-head .sub{font-family:var(--body);font-weight:400;font-size:14px;color:rgba(255,255,255,.72)}
+.card{background:var(--paper);border:1px solid var(--line)}
+.card-body{padding:24px}
 
 /* ---------- الدمج ---------- */
-.merge-grid{display:grid;grid-template-columns:380px minmax(0,1fr);gap:22px;align-items:start}
-.side{background:var(--paper);border:1px solid var(--line)}
-.side-block{padding:18px 20px}
+.merge-grid{display:grid;grid-template-columns:400px minmax(0,1fr);gap:40px;align-items:start}
+.side-block{padding:22px 24px}
 .side-block + .side-block{border-top:1px solid var(--line)}
-.parcel-list{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.pbtn{border:1px solid var(--line);background:var(--bg);padding:8px 10px;cursor:pointer;text-align:right;border-radius:0}
-.pbtn b{display:block;font-family:var(--display);font-size:14px;font-weight:600}
-.pbtn span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.pbtn[aria-pressed="true"]{border-color:var(--ink);background:#FFF6DC;box-shadow:inset 0 -3px 0 var(--gold)}
+.parcel-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pbtn{border:1px solid var(--line);background:var(--paper);padding:0 0 10px;cursor:pointer;text-align:right;border-radius:0;transition:border-color .25s}
+.pbtn::before{content:"";display:block;height:6px;background:#D2D2D2;margin-bottom:8px;transition:background .3s}
+.pbtn:hover{border-color:var(--ink)}
+.pbtn b{display:block;font-family:var(--display);font-size:14px;font-weight:600;padding:0 10px}
+.pbtn span{display:block;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;padding:0 10px}
+.pbtn[aria-pressed="true"]{border-color:var(--ink)}
+.pbtn[aria-pressed="true"]::before{background:var(--accent)}
 .pbtn:disabled{cursor:default;color:var(--ink)}
-.pbtn:disabled:not([aria-pressed="true"]){opacity:.55}
-.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px}
+.pbtn:disabled:hover{border-color:var(--line)}
+.pbtn:disabled[aria-pressed="true"]{border-color:var(--ink)}
+.pbtn:disabled:not([aria-pressed="true"]){opacity:.5}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px}
+.row + .row{margin-top:6px}
 .row b{font-variant-numeric:tabular-nums}
-.big{font-family:var(--display);font-size:40px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;margin-top:6px}
+.big{font-family:var(--display);font-size:48px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;margin-top:14px}
 .big-sub{font-size:14px;color:var(--muted)}
-.bar{height:10px;background:var(--bg);margin-top:16px}
-.bar-fill{height:100%;width:0;background:var(--brick);transition:width .4s ease,background .4s}
-.bar-fill.ok{background:var(--green)}
-.bar-th{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
-.status{font-family:var(--display);font-weight:600;font-size:15px;padding:10px 14px;margin-top:14px}
-.status.neutral{background:var(--bg);color:var(--muted)}
-.status.bad{background:var(--brick-l);color:var(--brick)}
-.status.warn{background:var(--amber-l);color:var(--amber)}
-.status.ok{background:var(--brand-l);color:var(--brand)}
-.money{display:flex;flex-direction:column;gap:8px}
-.money .hl b{font-family:var(--display);font-size:22px;color:var(--brand)}
+.bar{height:8px;background:var(--soft);margin-top:20px}
+.bar-fill{height:100%;width:0;background:var(--ink);transition:width .6s var(--ease),background .45s}
+.bar-fill.ok{background:var(--accent)}
+.bar-th{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:8px}
+.status{font-family:var(--display);font-weight:600;font-size:15px;padding:12px 16px;margin-top:16px;border-inline-start:3px solid transparent;transition:background .35s,color .35s,border-color .35s}
+.status.neutral{background:var(--soft);color:var(--muted)}
+.status.bad{background:var(--soft);color:var(--ink);border-inline-start-color:var(--ink)}
+.status.warn{background:var(--paper);color:var(--ink);border:1px dashed var(--ink);border-inline-start:3px solid var(--ink)}
+.status.ok{background:var(--accent);color:var(--charcoal)}
+.status.formed{animation:rise .6s var(--ease)}
+.money .hl b{font-family:var(--display);font-size:24px}
 .money .hl b.muted{font-family:var(--body);font-size:14px;color:var(--muted);font-weight:500}
-.btn{display:block;width:100%;border:0;padding:14px;cursor:pointer;background:var(--ink);color:#fff;font-family:var(--display);font-weight:600;font-size:16px;border-radius:0;margin-top:14px}
-.btn:hover{background:var(--brand)}
+.btn{display:block;width:100%;border:0;padding:15px;cursor:pointer;background:var(--charcoal);color:#fff;font-family:var(--display);font-weight:600;font-size:16px;border-radius:0;margin-top:18px;transition:background .25s,color .25s}
+.btn:hover{background:var(--accent);color:var(--charcoal)}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
-.btn.ghost:hover{background:var(--bg)}
+.btn.ghost:hover{background:var(--soft)}
 .btn[hidden]{display:none}
-.map-note{margin:10px 0 0;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:10px}
+.map-note{margin:14px 0 0;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:10px}
 .map-note::before{content:"";width:22px;border-top:2px dashed var(--muted)}
 
 /* ---------- التوزيع ---------- */
-.dist-grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:22px;align-items:start}
-.card{background:var(--paper);border:1px solid var(--line);padding:20px}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
-.field > label,.field > .lbl{font-family:var(--display);font-size:13px;font-weight:600}
-select,input[type=number]{font:inherit;padding:9px 12px;border:1px solid var(--ink);background:#fff;border-radius:0;width:100%}
-select:focus-visible,input:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
-.checks{display:flex;gap:18px;flex-wrap:wrap}
-.checks label{display:flex;align-items:center;gap:7px;font-size:14px}
-.checks input{width:17px;height:17px;accent-color:var(--brand)}
+.dist-grid{display:grid;grid-template-columns:380px minmax(0,1fr);gap:40px;align-items:start}
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.field > label,.field > .lbl{font-family:var(--display);font-size:14px;font-weight:600}
+select,input[type=number]{font:inherit;padding:10px 12px;border:1px solid #BEBEBE;background:#fff;color:var(--ink);border-radius:0;width:100%;transition:border-color .2s}
+select:hover,input[type=number]:hover{border-color:var(--ink)}
+select:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.checks{display:flex;gap:20px;flex-wrap:wrap}
+.checks label{display:flex;align-items:center;gap:8px;font-size:15px}
+.checks input{width:17px;height:17px;accent-color:var(--charcoal)}
 .counts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.sums{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px}
-.sums .net b{font-family:var(--display);font-size:22px;color:var(--brand)}
-.dist-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
-.segbar{display:flex;height:26px;margin:6px 0 18px;gap:2px}
-.seg{height:100%;min-width:3px}
-.note{font-size:13px;color:var(--muted);margin:14px 0 0}
+.sums{border-top:1px solid var(--line);padding-top:16px}
+.sums .net b{font-family:var(--display);font-size:24px}
+.segbar{display:flex;height:28px;margin:0 0 24px;gap:2px}
+.seg{height:100%;min-width:3px;transition:flex .45s var(--ease)}
+.table-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:15px;min-width:520px}
+.tbl th{text-align:right;padding:12px 14px;font-family:var(--display);font-weight:600;font-size:13px;color:var(--muted);border-bottom:2px solid var(--ink)}
+.tbl td{padding:12px 14px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.tbl tr.total td{border-top:2px solid var(--ink);font-weight:700}
+.note{font-size:13px;color:var(--muted);margin:18px 0 0}
 
 /* ---------- التذييل ---------- */
-.foot{position:fixed;bottom:0;left:0;right:0;background:var(--charcoal);color:#CFCCC5;text-align:center;font-size:13px;padding:11px 16px;z-index:1000}
+.foot{position:fixed;bottom:0;left:0;right:0;background:var(--charcoal);color:rgba(255,255,255,.78);text-align:center;font-size:13px;padding:11px 16px;z-index:1000}
 
-@media (max-width:960px){
+@media (max-width:1100px){
   .merge-grid,.dist-grid{grid-template-columns:1fr}
-  .kpis{grid-template-columns:1fr}
-  .kpi + .kpi{border-inline-start:0;border-top:1px solid var(--line)}
-  h1{font-size:26px}
-  .tabs button{min-height:48px;padding:0 12px}
-  .top-in,.hero-in,main{padding-inline:16px}
+}
+@media (max-width:960px){
+  .kpis{grid-template-columns:1fr;gap:32px;margin-bottom:64px}
+  .top-in{padding-inline:16px}
+  .brand-sub{display:none}
+  .hero-in{padding:80px 16px 64px}
+  main{padding:56px 16px 80px}
+  .section{margin-top:72px}
+  .map{height:420px}
+  .map-tall{height:460px}
+}
+@media (max-width:620px){
+  .top-in{height:auto;flex-wrap:wrap;gap:0}
+  .brand{padding:12px 0 4px}
+  .tabs{width:100%;overflow-x:auto}
+  .tabs button{min-height:46px;padding:0 12px;white-space:nowrap}
+  .tabs button::after{inset-inline:12px}
+  .filters{gap:20px}
+  .parcel-list{grid-template-columns:repeat(2,1fr)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -182,17 +229,15 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--brand);outline-
 <header class="top">
   <div class="top-in">
     <div class="brand">
-      <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
-        <rect x="2" y="2" width="15" height="15" fill="none" stroke="#fff" stroke-width="1.2" stroke-dasharray="2 2"/>
-        <rect x="19" y="2" width="15" height="15" fill="none" stroke="#fff" stroke-width="1.2" stroke-dasharray="2 2"/>
-        <rect x="2" y="19" width="15" height="15" fill="none" stroke="#fff" stroke-width="1.2" stroke-dasharray="2 2"/>
+      <svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true">
+        <rect x="2" y="2" width="15" height="15" fill="none" stroke="#393939" stroke-width="1.4" stroke-dasharray="2 2"/>
+        <rect x="19" y="2" width="15" height="15" fill="none" stroke="#393939" stroke-width="1.4" stroke-dasharray="2 2"/>
+        <rect x="2" y="19" width="15" height="15" fill="none" stroke="#393939" stroke-width="1.4" stroke-dasharray="2 2"/>
         <rect x="19" y="19" width="15" height="15" fill="#F2C14E"/>
-        <rect x="1" y="1" width="34" height="34" fill="none" stroke="#fff" stroke-width="2"/>
+        <rect x="1" y="1" width="34" height="34" fill="none" stroke="#393939" stroke-width="2"/>
       </svg>
-      <div>
-        <div class="brand-name">حيازة</div>
-        <div class="brand-sub">منصة تفعيل الأصول الموروثة المعطلة</div>
-      </div>
+      <span class="brand-name">حيازة</span>
+      <span class="brand-sub">منصة تفعيل الأصول الموروثة المعطلة</span>
     </div>
     <nav class="tabs" role="tablist" aria-label="شاشات المنصة">
       <button role="tab" id="tab-dashboard" data-tab="dashboard" aria-selected="true">لوحة الرصد</button>
@@ -204,19 +249,17 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--brand);outline-
 
 <!-- ===================== ١ — لوحة الرصد ===================== -->
 <section id="panel-dashboard" class="panel" role="tabpanel" aria-labelledby="tab-dashboard">
-  <div class="hero"><div class="hero-in">
-    <div>
-      <div class="eyebrow">لوحة الجهة الحكومية · رصد الأصول المعطلة</div>
-      <h1>نطاق البدائع — القصيم</h1>
-      <p>كم أصلاً معطلاً، من أي نوع، ولأي سبب. بيانات لا تملكها أي جهة اليوم.</p>
-    </div>
+  <div class="hero" id="hero-dashboard"><div class="hero-in">
+    <div class="eyebrow">لوحة الجهة الحكومية · رصد الأصول المعطلة</div>
+    <h1 id="scopeTitle">نطاق عنيزة — القصيم</h1>
+    <p>كم أصلاً معطلاً، من أي نوع، ولأي سبب. بيانات لا تملكها أي جهة اليوم.</p>
     <div id="activeNote" class="active-note" hidden></div>
   </div></div>
   <main>
     <div class="kpis">
-      <div class="kpi"><div class="kpi-label">أصول معطلة</div><div class="kpi-val red" id="kCount">—</div></div>
+      <div class="kpi"><div class="kpi-label">أصول معطلة</div><div class="kpi-val" id="kCount">—</div></div>
       <div class="kpi"><div class="kpi-label">المساحة المعطلة</div><div class="kpi-val" id="kArea">—</div><div class="kpi-sub" id="kAreaHa"></div></div>
-      <div class="kpi"><div class="kpi-label">القيمة الاقتصادية الضائعة سنوياً</div><div class="kpi-val red" id="kLost">—</div></div>
+      <div class="kpi"><div class="kpi-label">القيمة الاقتصادية الضائعة سنوياً</div><div class="kpi-val" id="kLost">—</div></div>
     </div>
     <div class="filters">
       <div class="fgroup"><span class="flabel">نوع الأصل</span><div class="chips" id="fType"></div></div>
@@ -226,28 +269,24 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--brand);outline-
       <div id="dashMap" class="map"></div>
       <div class="legend"><span><i class="sw idle"></i>معطل</span><span><i class="sw active"></i>مفعّل عبر حيازة</span><span><i class="sw dim"></i>خارج التصنيف</span></div>
     </div>
-    <h2 class="section-title">سجل الأصول</h2>
-    <div class="table-wrap">
-      <table class="tbl">
-        <thead><tr><th>المعرّف</th><th>النوع</th><th>المساحة</th><th>الورثة</th><th>معطل منذ</th><th>السبب</th><th>الحالة</th></tr></thead>
-        <tbody id="assetRows"></tbody>
-      </table>
+    <div class="section">
+      <div class="section-head"><h2 class="section-title">سجل الأصول</h2><span class="section-count" id="assetCount"></span></div>
+      <div class="cards" id="assetCards"></div>
     </div>
   </main>
 </section>
 
 <!-- ===================== ٢ — الدمج ===================== -->
 <section id="panel-merge" class="panel" role="tabpanel" aria-labelledby="tab-merge" hidden>
-  <div class="hero"><div class="hero-in">
-    <div>
-      <div class="eyebrow">الدمج التعاقدي · نظم المعلومات الجغرافية</div>
-      <h1>ست قطع متجاورة، لا تكفي أيٌّ منها وحدها</h1>
-      <p>اختر القطع لتكوين كتلة واحدة تتجاوز حد جدوى المشغّل، دون أن يُمس أي صك.</p>
-    </div>
+  <div class="hero" id="hero-merge"><div class="hero-in">
+    <div class="eyebrow">الدمج التعاقدي · نظم المعلومات الجغرافية · <span id="mergeCity">عنيزة</span></div>
+    <h1>ست قطع متجاورة، لا تكفي أيٌّ منها وحدها</h1>
+    <p>اختر القطع لتكوين كتلة واحدة تتجاوز حد جدوى المشغّل، دون أن يُمس أي صك.</p>
   </div></div>
   <main>
     <div class="merge-grid">
-      <aside class="side">
+      <aside class="card">
+        <div class="block-head"><span>اختيار القطع</span><span class="sub">من القائمة أو الخريطة</span></div>
         <div class="side-block">
           <div class="parcel-list" id="parcelList"></div>
         </div>
@@ -278,52 +317,55 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--brand);outline-
 
 <!-- ===================== ٣ — توزيع العائد ===================== -->
 <section id="panel-distribute" class="panel" role="tabpanel" aria-labelledby="tab-distribute" hidden>
-  <div class="hero"><div class="hero-in">
-    <div>
-      <div class="eyebrow">التوزيع المحسوب · حسب الحصر الشرعي</div>
-      <h1>كل وريث يعرف نصيبه بالهللة</h1>
-      <p>غيّر تركيبة الورثة وشاهد الأنصبة والمبالغ تتغير لحظياً.</p>
-    </div>
+  <div class="hero" id="hero-distribute"><div class="hero-in">
+    <div class="eyebrow">التوزيع المحسوب · حسب الحصر الشرعي</div>
+    <h1>كل وريث يعرف نصيبه بالهللة</h1>
+    <p>غيّر تركيبة الورثة وشاهد الأنصبة والمبالغ تتغير لحظياً.</p>
   </div></div>
   <main>
     <div class="dist-grid">
       <div class="card">
-        <div class="field">
-          <label for="dParcel">القطعة</label>
-          <select id="dParcel"></select>
-        </div>
-        <div class="field">
-          <label for="dGross">العائد السنوي للقطعة (ريال)</label>
-          <input type="number" id="dGross" min="0" step="100">
-        </div>
-        <div class="field">
-          <span class="lbl">الورثة</span>
-          <div class="checks">
-            <label><input type="checkbox" id="dWife">زوجة</label>
-            <label><input type="checkbox" id="dMother">أم</label>
-            <label><input type="checkbox" id="dFather">أب</label>
+        <div class="block-head"><span>مدخلات التوزيع</span></div>
+        <div class="card-body">
+          <div class="field">
+            <label for="dParcel">القطعة</label>
+            <select id="dParcel"></select>
           </div>
-        </div>
-        <div class="counts">
-          <div class="field"><label for="dSons">عدد الأبناء</label><input type="number" id="dSons" min="1" max="10"></div>
-          <div class="field"><label for="dDaughters">عدد البنات</label><input type="number" id="dDaughters" min="0" max="10"></div>
-        </div>
-        <div class="sums">
-          <div class="row"><span>العائد السنوي</span><b id="dGrossOut"></b></div>
-          <div class="row"><span id="dFeeLabel">رسوم حيازة</span><b id="dFee"></b></div>
-          <div class="row net"><span>الصافي للتوزيع</span><b id="dNet"></b></div>
+          <div class="field">
+            <label for="dGross">العائد السنوي للقطعة (ريال)</label>
+            <input type="number" id="dGross" min="0" step="100">
+          </div>
+          <div class="field">
+            <span class="lbl">الورثة</span>
+            <div class="checks">
+              <label><input type="checkbox" id="dWife">زوجة</label>
+              <label><input type="checkbox" id="dMother">أم</label>
+              <label><input type="checkbox" id="dFather">أب</label>
+            </div>
+          </div>
+          <div class="counts">
+            <div class="field"><label for="dSons">عدد الأبناء</label><input type="number" id="dSons" min="1" max="10"></div>
+            <div class="field"><label for="dDaughters">عدد البنات</label><input type="number" id="dDaughters" min="0" max="10"></div>
+          </div>
+          <div class="sums">
+            <div class="row"><span>العائد السنوي</span><b id="dGrossOut"></b></div>
+            <div class="row"><span id="dFeeLabel">رسوم حيازة</span><b id="dFee"></b></div>
+            <div class="row net"><span>الصافي للتوزيع</span><b id="dNet"></b></div>
+          </div>
         </div>
       </div>
       <div class="card">
-        <div class="dist-head"><h2 class="section-title" style="margin:0">جدول الأنصبة</h2><span class="big-sub" id="dHeirCount"></span></div>
-        <div class="segbar" id="dBar"></div>
-        <div class="table-wrap" style="border:0">
-          <table class="tbl">
-            <thead><tr><th>الوارث</th><th>النصيب</th><th>النسبة</th><th>المبلغ السنوي</th></tr></thead>
-            <tbody id="dRows"></tbody>
-          </table>
+        <div class="block-head"><span>جدول الأنصبة</span><span class="sub" id="dHeirCount"></span></div>
+        <div class="card-body">
+          <div class="segbar" id="dBar"></div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>الوارث</th><th>النصيب</th><th>النسبة</th><th>المبلغ السنوي</th></tr></thead>
+              <tbody id="dRows"></tbody>
+            </table>
+          </div>
+          <p class="note">الأنصبة الفعلية تُستمد من صك حصر الإرث، والصرف عبر مزوّد دفع مرخّص. النموذج يغطي حالة وجود ابن واحد على الأقل.</p>
         </div>
-        <p class="note">الأنصبة الفعلية تُستمد من صك حصر الإرث، والصرف عبر مزوّد دفع مرخّص. النموذج يغطي حالة وجود ابن واحد على الأقل.</p>
       </div>
     </div>
   </main>
