@@ -28,7 +28,7 @@
 
   const state = {
     typeF: "الكل", reasonF: "الكل",
-    selected: [], activated: {}, blockFormed: false, fresh: false,
+    selected: [], activated: {}, blockFormed: false,
     distId: mergeIds[0], mix: null, gross: 0
   };
   const isActive = (a) => !!state.activated[a.id];
@@ -51,21 +51,17 @@
     return [(p[0][0] + p[2][0]) / 2, (p[0][1] + p[2][1]) / 2];
   }
 
-  const COL = { idle: "#393939", active: "#F2C14E", sel: "#FFFFFF", dim: "#9A9A9A", line: "#FFFFFF" };
+  // الألوان تُقرأ من متغيرات CSS في index.html
+  const css = getComputedStyle(document.documentElement);
+  const v = (name) => css.getPropertyValue("--" + name).trim();
+  const COL = { idle: v("idle"), active: v("active"), sel: v("sand"), dim: v("dim"), line: v("map-line") };
 
   const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/";
-  function tileURL(a) {
-    const c = centerOf(a), z = a.area < 20000 ? 18 : 16, n = Math.pow(2, z), r = (c[0] * Math.PI) / 180;
-    const x = Math.floor(((c[1] + 180) / 360) * n);
-    const y = Math.floor(((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n);
-    return ESRI + "tile/" + z + "/" + y + "/" + x;
-  }
-  function heroImage(el, pts) {
-    const lat = pts.map((p) => p[0]), lon = pts.map((p) => p[1]);
-    const s = Math.min(...lat), n = Math.max(...lat), w = Math.min(...lon), e = Math.max(...lon);
-    const pl = (n - s) * 0.25, po = (e - w) * 0.25;
-    el.style.backgroundImage = "url('" + ESRI + "export?bbox=" + [w - po, s - pl, e + po, n + pl].join(",") +
-      "&bboxSR=4326&imageSR=3857&size=1600,700&format=jpg&f=image')";
+  function thumbURL(a) {
+    const c = centerOf(a), half = Math.max(Math.sqrt(a.area), 160);
+    const dLat = half / LAT_M, dLon = (half * 16 / 9) / (111320 * Math.cos((c[0] * Math.PI) / 180));
+    return ESRI + "export?bbox=" + [c[1] - dLon, c[0] - dLat, c[1] + dLon, c[0] + dLat].join(",") +
+      "&bboxSR=4326&imageSR=3857&size=480,270&format=jpg&f=image";
   }
 
   function makeMap(el) {
@@ -74,7 +70,7 @@
       el.innerHTML = '<p class="map-msg">تعذّر تحميل الخريطة. تأكد من الاتصال بالإنترنت ثم أعد تحميل الصفحة.</p>';
       return null;
     }
-    const map = L.map(el, { scrollWheelZoom: false, zoomSnap: 0.25 });
+    const map = L.map(el, { scrollWheelZoom: false, zoomSnap: 0.25, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false });
     const t = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
       maxZoom: 19, attribution: "Imagery © Esri"
     });
@@ -138,8 +134,8 @@
     $("assetCards").innerHTML = rows.length
       ? rows.map((a) => {
           const on = isActive(a);
-          return '<article class="acard' + (on ? " on" : "") + (on && state.fresh ? " fresh" : "") + '">' +
-            '<div class="acard-media" style="background-image:url(\'' + tileURL(a) + '\')"><span class="tag ' + TAGC[a.type] + '">' + a.type + "</span></div>" +
+          return '<article class="acard' + (on ? " on" : "") + '">' +
+            '<div class="acard-media" style="background-image:url(\'' + thumbURL(a) + '\')"><span class="tag ' + TAGC[a.type] + '">' + a.type + "</span></div>" +
             '<div class="acard-body"><div class="acard-id">قطعة ' + ar(a.id) + '</div><div class="acard-area">' + m2(a.area) + "</div>" +
             '<p class="acard-meta">' + nf0.format(a.heirs) + " ورثة · معطل منذ " + ar(a.since) + "<br>السبب: " + a.reason + "</p>" +
             '<div class="acard-status">' + (on ? "مفعّل عبر حيازة" : "معطل") + "</div></div></article>";
@@ -208,7 +204,7 @@
     mergeIds.forEach((id) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "pbtn";
+      b.className = "pbtn" + (state.blockFormed && s.ids.includes(id) ? " formed" : "");
       b.setAttribute("aria-pressed", s.ids.includes(id) ? "true" : "false");
       b.disabled = state.blockFormed;
       b.innerHTML = "<b>قطعة " + ar(id) + "</b><span>" + m2(byId[id].area) + "</span>";
@@ -233,11 +229,16 @@
     else if (!s.viable) { cls = "bad"; txt = "دون حد الجدوى — ينقص " + m2(D.viabilityMinM2 - s.area); }
     else { cls = "ok"; txt = "كتلة قابلة للطرح"; }
     const st = $("mStatus");
-    st.className = "status " + cls + (state.blockFormed ? " formed" : "");
+    st.className = "status " + cls;
     st.textContent = txt;
 
-    $("mIncome").textContent = s.ok ? sar(s.income) : "لا يوجد مشغّل لهذه المساحة";
-    $("mIncome").classList.toggle("muted", !s.ok);
+    const n = s.ids.length;
+    $("mIncome").textContent = s.ok ? sar(s.income) : "—";
+    $("mIncome").classList.toggle("none", !s.ok);
+    $("cOperator").textContent = s.ok ? "متاح لكتلة واحدة" : n ? "لا يوجد لهذه المساحة" : "—";
+    $("cOperator").classList.toggle("none", !s.ok);
+    $("cDeedsBefore").textContent = n ? nf0.format(n) + " صكوك منفصلة" : "—";
+    $("cDeedsAfter").textContent = n ? nf0.format(n) + " صكوك كما هي" : "—";
     $("mFee").textContent = s.ok ? sar(s.fee) : "—";
     $("mFeeLabel").textContent = "إيراد حيازة (" + nf0.format(D.feeRate * 100) + "٪)";
 
@@ -258,7 +259,6 @@
     const s = mergeStats();
     if (!s.ok) return;
     state.blockFormed = true;
-    state.fresh = true;
     state.activated = {};
     s.ids.forEach((id) => (state.activated[id] = true));
 
@@ -271,7 +271,7 @@
         });
         const u = polys.reduce((acc, p) => turf.union(acc, p));
         blockLayer = L.geoJSON(u, {
-          style: { color: "#FFFFFF", weight: 4, fill: false, className: "block-outline" },
+          style: { color: COL.line, weight: 4, fill: false },
           interactive: false
         }).addTo(mergeMap);
       } catch (e) { /* الحد الخارجي زخرفي فقط */ }
@@ -292,7 +292,7 @@
   // =====================================================
   //  ٣ — توزيع العائد
   // =====================================================
-  const KCOL = { wife: "#393939", mother: "#7A7A7A", father: "#BDBDBD", son: "#F2C14E", daughter: "#F8DE9E" };
+  const KCOL = { wife: v("heir-wife"), mother: v("heir-mother"), father: v("heir-father"), son: v("heir-son"), daughter: v("heir-daughter") };
 
   function initDist() {
     const sel = $("dParcel");
@@ -380,7 +380,6 @@
       $("panel-" + t).hidden = t !== name;
       $("tab-" + t).setAttribute("aria-selected", t === name ? "true" : "false");
     });
-    if (name === "dashboard") state.fresh = false;
     if (name === "dashboard" && dashMap) {
       dashMap.invalidateSize();
       if (!fitted.d) { dashMap.fitBounds(L.latLngBounds(D.assets.flatMap(shapeOf)).pad(0.08)); fitted.d = true; }
@@ -393,11 +392,8 @@
   }
 
   // ---------- تشغيل ----------
-  $("scopeTitle").textContent = D.scope.name + " — " + D.scope.region;
+  $("scopeTitle").textContent = D.scope.name;
   $("mergeCity").textContent = D.merge.city;
-  heroImage($("hero-dashboard"), D.assets.flatMap(shapeOf));
-  heroImage($("hero-merge"), mergeIds.flatMap((id) => shapeOf(byId[id])));
-  heroImage($("hero-distribute"), shapeOf(byId[mergeIds[0]]));
   document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
   dashMap = makeMap($("dashMap"));
   if (dashMap) dashLayer = L.layerGroup().addTo(dashMap);
