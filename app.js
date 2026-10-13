@@ -15,6 +15,8 @@
   const ha = (v) => nf1.format(v / 10000) + " هكتار";
   const sar = (v) => nf0.format(Math.round(v)) + " ريال";
   const sar2 = (v) => nf2.format(v) + " ريال";
+  const nfp = new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 1 });
+  const pct = (r) => nfp.format(r * 100) + "٪";
   const $ = (id) => document.getElementById(id);
 
   // ---------- بيانات ----------
@@ -86,9 +88,9 @@
   // =====================================================
   //  ١ — لوحة الرصد
   // =====================================================
-  const TYPES = ["الكل", "زراعي", "سكني", "تجاري"];
-  const REASONS = ["الكل", "ورثة", "مياه", "عدم اهتمام"];
-  const TAGC = { "زراعي": "t-agr", "سكني": "t-res", "تجاري": "t-com" };
+  const TYPES = ["الكل"].concat(D.types);
+  const REASONS = ["الكل"].concat(D.reasons);
+  const TAGC = { "أرض بيضاء": "t-land", "مبنى قديم": "t-old", "مستودع": "t-wh", "زراعي": "t-agr" };
   let dashMap = null, dashLayer = null;
 
   const matches = (a, t, r) => (t === "الكل" || a.type === t) && (r === "الكل" || a.reason === r);
@@ -193,7 +195,8 @@
     const contiguous = C.isContiguous(ids, rects);
     const viable = area >= D.viabilityMinM2;
     const income = area * D.rentPerM2["زراعي"];
-    return { ids, area, heirs, contiguous, viable, ok: viable && contiguous && ids.length > 0, income, fee: income * D.feeRate };
+    const mgmt = income * D.managementRate;
+    return { ids, area, heirs, contiguous, viable, ok: viable && contiguous && ids.length > 0, income, feeFirst: income * D.brokerageRate + mgmt, feeYearly: mgmt };
   }
 
   function renderMerge() {
@@ -239,8 +242,8 @@
     $("cOperator").classList.toggle("none", !s.ok);
     $("cDeedsBefore").textContent = n ? nf0.format(n) + " صكوك منفصلة" : "—";
     $("cDeedsAfter").textContent = n ? nf0.format(n) + " صكوك كما هي" : "—";
-    $("mFee").textContent = s.ok ? sar(s.fee) : "—";
-    $("mFeeLabel").textContent = "إيراد حيازة (" + nf0.format(D.feeRate * 100) + "٪)";
+    $("mFee").textContent = s.ok ? sar(s.feeFirst) + " ثم " + sar(s.feeYearly) + " سنوياً" : "—";
+    $("mFeeLabel").textContent = "إيراد حيازة (وساطة " + pct(D.brokerageRate) + " + إدارة " + pct(D.managementRate) + ")";
 
     $("mForm").hidden = !(s.ok && !state.blockFormed);
     $("mReset").hidden = !(state.blockFormed || s.ids.length);
@@ -345,9 +348,10 @@
 
   function renderDist() {
     const gross = state.gross;
-    const fee = Math.round(gross * D.feeRate * 100) / 100;
+    // السنة الأولى: عمولة الوساطة + رسوم الإدارة السنوية
+    const fee = (Math.round(gross * D.brokerageRate * 100) + Math.round(gross * D.managementRate * 100)) / 100;
     const net = Math.round((gross - fee) * 100) / 100;
-    $("dFeeLabel").textContent = "رسوم حيازة (" + nf0.format(D.feeRate * 100) + "٪)";
+    $("dFeeLabel").textContent = "رسوم السنة الأولى (وساطة " + pct(D.brokerageRate) + " + إدارة " + pct(D.managementRate) + ")";
     $("dGrossOut").textContent = sar2(gross);
     $("dFee").textContent = "− " + sar2(fee);
     $("dNet").textContent = sar2(net);

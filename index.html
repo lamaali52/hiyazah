@@ -48,7 +48,7 @@ body{font-family:var(--body);background:var(--sand);color:var(--date);font-size:
 button{font:inherit}
 
 /* ---------- الشريط العلوي ---------- */
-.top{position:sticky;top:0;z-index:1000;background:var(--sand);border-bottom:1px solid var(--line)}
+.top{position:sticky;top:0;z-index:1100;background:var(--sand);border-bottom:1px solid var(--line)}
 .top-in{max-width:1360px;margin:0 auto;padding:0 48px;height:56px;display:flex;align-items:stretch;justify-content:space-between;gap:24px}
 .brand{display:flex;align-items:center;gap:12px}
 .brand svg{flex:0 0 auto}
@@ -120,8 +120,9 @@ main{max-width:1360px;margin:0 auto;padding:88px 48px 112px}
 .acard.on .acard-media::after{content:"";position:absolute;inset:auto 0 0 0;height:5px;background:var(--active)}
 .tag{position:absolute;top:14px;inset-inline-start:14px;font-family:var(--display);font-size:12px;font-weight:600;padding:3px 10px;line-height:1.5}
 .tag.t-agr{background:var(--palm);color:var(--on-dark)}
-.tag.t-res{background:var(--sand);color:var(--date)}
-.tag.t-com{background:var(--date);color:var(--on-dark)}
+.tag.t-land{background:var(--sand);color:var(--date)}
+.tag.t-old{background:var(--date);color:var(--on-dark)}
+.tag.t-wh{background:var(--palm-tint);color:var(--palm)}
 .acard-body{padding:20px 22px 22px;display:flex;flex-direction:column;gap:4px;flex:1}
 .acard-id{font-family:var(--display);font-weight:600;font-size:14px;color:var(--date-soft)}
 .acard-area{font-family:var(--display);font-size:28px;font-weight:700;line-height:1.25;font-variant-numeric:tabular-nums}
@@ -217,7 +218,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 .note{font-size:13px;color:var(--date-soft);margin:18px 0 0}
 
 /* ---------- التذييل ---------- */
-.foot{position:fixed;bottom:0;left:0;right:0;background:var(--date);color:var(--on-dark-soft);text-align:center;font-size:13px;padding:11px 16px;z-index:1000}
+.foot{position:fixed;bottom:0;left:0;right:0;background:var(--date);color:var(--on-dark-soft);text-align:center;font-size:13px;padding:11px 16px;z-index:1100}
 
 @media (max-width:1100px){
   .merge-grid,.dist-grid{grid-template-columns:1fr}
