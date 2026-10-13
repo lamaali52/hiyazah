@@ -214,6 +214,22 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 .sums{border-top:1px solid var(--line);padding-top:16px}
 .sums .net{border-top:4px solid var(--gold);margin-top:14px;padding-top:12px}
 .sums .net b{font-family:var(--display);font-size:26px}
+.paydirect{background:var(--palm);color:var(--on-dark);padding:16px 22px;margin-bottom:40px;font-family:var(--display);font-size:17px}
+.principle{margin-top:56px;border-inline-start:4px solid var(--palm);background:var(--paper);padding:16px 22px;font-family:var(--display);font-weight:600;font-size:16px}
+.principle-k{display:block;font-size:13px;font-weight:600;color:var(--date-soft);margin-bottom:2px}
+.consent-sum{margin:0 0 16px;font-size:14px;color:var(--date-soft)}
+.cs{display:inline-block;font-size:12px;font-weight:600;padding:2px 10px;white-space:nowrap}
+.cs.ok{background:var(--active-tint);color:var(--palm)}
+.cs.wait{background:var(--sand-deep);color:var(--date)}
+.cards.blocks{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+.bk-rows{margin:10px 0 0}
+.bk-rows .rv{font-size:14px}
+.bk-rent dd{font-size:22px;font-weight:700}
+.bk-terms{list-style:none;margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:14px}
+.bk-terms li{display:flex;gap:8px;align-items:baseline}
+.bk-terms li::before{content:"";flex:0 0 7px;height:7px;background:var(--palm);transform:translateY(-1px)}
+.bk-empty{grid-column:1/-1;padding:56px 24px;text-align:center;color:var(--date-soft);border:1px dashed var(--line);background:var(--paper)}
+.bk-empty b{display:block;font-family:var(--display);color:var(--date);font-size:18px;margin-bottom:6px}
 .fee-note{margin:10px 0 0;font-size:13px;color:var(--date-soft)}
 .segbar{display:flex;height:28px;margin:0 0 24px;gap:2px}
 .seg{height:100%;min-width:3px}
@@ -269,7 +285,8 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
     <nav class="tabs" role="tablist" aria-label="شاشات المنصة">
       <button role="tab" id="tab-dashboard" data-tab="dashboard" aria-selected="true">لوحة الرصد</button>
       <button role="tab" id="tab-merge" data-tab="merge" aria-selected="false">الدمج</button>
-      <button role="tab" id="tab-distribute" data-tab="distribute" aria-selected="false">توزيع العائد</button>
+      <button role="tab" id="tab-invest" data-tab="invest" aria-selected="false">فرص الاستثمار</button>
+      <button role="tab" id="tab-owners" data-tab="owners" aria-selected="false">بوابة الملاك</button>
     </nav>
   </div>
 </header>
@@ -277,9 +294,9 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 <!-- ===================== ١ — لوحة الرصد ===================== -->
 <section id="panel-dashboard" class="panel" role="tabpanel" aria-labelledby="tab-dashboard">
   <div class="hero"><div class="hero-in">
-    <div class="eyebrow">لوحة الجهة الحكومية · رصد الأصول المعطلة</div>
+    <div class="eyebrow">للجهة الحكومية · الحل أ — الرصد والتصنيف</div>
     <h1 id="scopeTitle">منطقة القصيم</h1>
-    <p>كم أصلاً معطلاً، في أي محافظة، من أي نوع، ولأي سبب. بيانات لا تملكها أي جهة اليوم.</p>
+    <p>أمانة منطقة القصيم والهيئة العامة للعقار: لوحة رصد تدعم القرار بمعرفة حجم الأصول المعطلة وأسبابها.</p>
     <div id="activeNote" class="active-note" hidden></div>
   </div></div>
   <main>
@@ -306,9 +323,9 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 <!-- ===================== ٢ — الدمج ===================== -->
 <section id="panel-merge" class="panel" role="tabpanel" aria-labelledby="tab-merge" hidden>
   <div class="hero"><div class="hero-in">
-    <div class="eyebrow">الدمج التعاقدي · <span id="mergeCity">بريدة</span> · نظم المعلومات الجغرافية</div>
-    <h1>ست قطع متجاورة، لا تكفي أيٌّ منها وحدها</h1>
-    <p>اختر القطع لتكوين كتلة واحدة تتجاوز حد جدوى المشغّل، دون أن يُمس أي صك.</p>
+    <div class="eyebrow">محرك الدمج · الحل ب — الدمج الافتراضي · <span id="mergeCity">بريدة</span></div>
+    <h1>ضم القطع المتجاورة في كتلة استثمارية واحدة</h1>
+    <p>تشغيل كل قطعة منفردة غير مجدٍ، فيبقى دخلها صفراً. الدمج يضمها بموافقة الملاك.</p>
   </div></div>
   <main>
     <div class="merge-grid">
@@ -362,24 +379,39 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
   </main>
 </section>
 
-<!-- ===================== ٣ — توزيع العائد ===================== -->
-<section id="panel-distribute" class="panel" role="tabpanel" aria-labelledby="tab-distribute" hidden>
+<!-- ===================== ٣ — فرص الاستثمار ===================== -->
+<section id="panel-invest" class="panel" role="tabpanel" aria-labelledby="tab-invest" hidden>
   <div class="hero"><div class="hero-in">
-    <div class="eyebrow">التوزيع المحسوب · حسب الحصر الشرعي</div>
-    <h1>كل وريث يعرف نصيبه بالهللة</h1>
-    <p>غيّر تركيبة الورثة وشاهد الأنصبة والمبالغ تتغير لحظياً.</p>
+    <div class="eyebrow">للمطور والمشغّل · الحل ج — عقد تشغيل موحد</div>
+    <h1>كتلة متصلة بدل التفاوض مع عشرات الملاك</h1>
+    <p>كتل جاهزة للتأجير، بعقود بشروط متطابقة لكل صك، دون تغيير الملكية القانونية.</p>
   </div></div>
   <main>
+    <div class="section-head"><h2 class="section-title">كتل جاهزة للتأجير</h2><span class="section-count" id="blockCount"></span></div>
+    <div class="cards blocks" id="blockCards"></div>
+    <div class="principle"><span class="principle-k">مبدؤنا</span>وسيط تقني: ننسّق ونجهّز المسودات، ولا نبرم العقود ولا ندير الأملاك</div>
+  </main>
+</section>
+
+<!-- ===================== ٤ — بوابة الملاك ===================== -->
+<section id="panel-owners" class="panel" role="tabpanel" aria-labelledby="tab-owners" hidden>
+  <div class="hero"><div class="hero-in">
+    <div class="eyebrow">للمالك والوريث · الحل د — التوزيع</div>
+    <h1>دخل سنوي من أصل كان معطلاً، دون التفريط في الصك</h1>
+    <p>حصص تُحسب آلياً وفق وثيقة حصر الورثة.</p>
+  </div></div>
+  <main>
+    <div class="paydirect"><b>المشغّل يدفع لكل مالك حصته مباشرة — حيازة لا تستلم الأموال</b></div>
     <div class="dist-grid">
       <div class="card">
-        <div class="block-head"><span>مدخلات التوزيع</span></div>
+        <div class="block-head"><span>الورثة من وثيقة حصر الورثة</span><span class="sub">عبر ناجز</span></div>
         <div class="card-body">
           <div class="field">
             <label for="dParcel">القطعة</label>
             <select id="dParcel"></select>
           </div>
           <div class="field">
-            <label for="dGross">العائد السنوي للقطعة (ريال)</label>
+            <label for="dGross">الإيجار السنوي للقطعة (ريال)</label>
             <input type="number" id="dGross" min="0" step="100">
           </div>
           <div class="field">
@@ -401,19 +433,21 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
         </div>
       </div>
       <div class="card">
-        <div class="block-head"><span>جدول الأنصبة</span><span class="sub" id="dHeirCount"></span></div>
+        <div class="block-head"><span>الأنصبة والموافقات</span><span class="sub" id="dHeirCount"></span></div>
         <div class="card-body">
+          <p class="consent-sum" id="dConsent"></p>
           <div class="segbar" id="dBar"></div>
           <div class="table-wrap">
             <table class="tbl">
-              <thead><tr><th>الوارث</th><th>النصيب</th><th>النسبة</th><th>المبلغ السنوي</th></tr></thead>
+              <thead><tr><th>الوارث</th><th>النصيب</th><th>النسبة</th><th>المبلغ السنوي</th><th>الموافقة</th></tr></thead>
               <tbody id="dRows"></tbody>
             </table>
           </div>
-          <p class="note">الأنصبة الفعلية تُستمد من صك حصر الإرث، والصرف عبر مزوّد دفع مرخّص. النموذج يغطي حالة وجود ابن واحد على الأقل.</p>
+          <p class="note">الأنصبة تُستمد من وثيقة حصر الورثة الصادرة عبر ناجز (وزارة العدل). للوريث القاصر يُسجَّل الولي، ولا تُفعَّل قطعته قبل الإذن النظامي. النموذج يغطي حالة وجود ابن واحد على الأقل.</p>
         </div>
       </div>
     </div>
+    <div class="principle"><span class="principle-k">مبدؤنا</span>وسيط تقني: ننسّق ونجهّز المسودات، ولا نبرم العقود ولا ندير الأملاك</div>
   </main>
 </section>
 

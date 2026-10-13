@@ -275,6 +275,7 @@
     }
     renderMerge();
     renderDashboard();
+    renderInvest();
   }
 
   function resetMerge() {
@@ -284,10 +285,51 @@
     if (blockLayer && mergeMap) { mergeMap.removeLayer(blockLayer); blockLayer = null; }
     renderMerge();
     renderDashboard();
+    renderInvest();
   }
 
   // =====================================================
-  //  ٣ — توزيع العائد
+  //  ٣ — فرص الاستثمار
+  // =====================================================
+  function blockThumb(ids) {
+    const pts = ids.flatMap((id) => shapeOf(byId[id]));
+    const lat = pts.map((p) => p[0]), lon = pts.map((p) => p[1]);
+    const s = Math.min(...lat), n = Math.max(...lat), w = Math.min(...lon), e = Math.max(...lon);
+    const pl = (n - s) * 0.35, po = (e - w) * 0.35;
+    return ESRI + "export?bbox=" + [w - po, s - pl, e + po, n + pl].join(",") + "&bboxSR=4326&imageSR=3857&size=640,360&format=jpg&f=image";
+  }
+
+  function renderInvest() {
+    const ids = state.blockFormed ? mergeIds.filter((id) => state.activated[id]) : [];
+    $("blockCount").textContent = nf0.format(ids.length ? 1 : 0) + " كتلة";
+    if (!ids.length) {
+      $("blockCards").innerHTML = '<div class="bk-empty"><b>لا توجد كتل جاهزة بعد</b>كوّن كتلة من شاشة الدمج لتظهر هنا للمطورين والمشغّلين.</div>';
+      return;
+    }
+    const s = mergeStats();
+    const type = byId[ids[0]].type;
+    const heirs = ids.reduce((t, id) => t + byId[id].heirs, 0);
+    const minors = ids.filter((id) => byId[id].minor).length;
+    $("blockCards").innerHTML =
+      '<article class="acard on">' +
+        '<div class="acard-media" style="background-image:url(\'' + blockThumb(ids) + '\')"><span class="tag ' + TAGC[type] + '">' + type + "</span></div>" +
+        '<div class="acard-body">' +
+          '<div class="acard-id">' + D.merge.location + "</div>" +
+          '<div class="acard-area">' + D.merge.blockName + "</div>" +
+          '<dl class="bk-rows">' +
+            '<div class="rv"><dt>المساحة</dt><dd>' + m2(s.area) + "</dd></div>" +
+            '<div class="rv"><dt>القطع والصكوك</dt><dd>' + nf0.format(ids.length) + " صكوك مستقلة</dd></div>" +
+            '<div class="rv"><dt>موافقات الملاك</dt><dd>' + nf0.format(heirs - minors) + " من " + nf0.format(heirs) + "</dd></div>" +
+            '<div class="rv bk-rent"><dt>الإيجار السنوي</dt><dd>' + rs(s.income) + "</dd></div>" +
+          "</dl>" +
+          '<ul class="bk-terms"><li>عقود بشروط متطابقة لكل صك، بتفاوض واحد</li><li>يوثّقها شريك مرخّص عبر شبكة إيجار</li></ul>' +
+          '<div class="acard-status">' + (minors ? "جاهزة للتأجير · وريث قاصر بانتظار الإذن النظامي" : "جاهزة للتأجير") + "</div>" +
+        "</div>" +
+      "</article>";
+  }
+
+  // =====================================================
+  //  ٤ — بوابة الملاك
   // =====================================================
   const KCOL = { wife: v("heir-wife"), mother: v("heir-mother"), father: v("heir-father"), son: v("heir-son"), daughter: v("heir-daughter") };
 
@@ -348,15 +390,20 @@
 
     const rows = C.distribute(Math.round(gross * 100), C.heirShares(state.mix));
     $("dHeirCount").textContent = nf0.format(rows.length) + " ورثة";
+    const minor = byId[state.distId].minor;
+    const pending = rows.filter((r) => r.label === minor).length;
+    $("dConsent").textContent = "الموافقات: " + nf0.format(rows.length - pending) + " من " + nf0.format(rows.length) +
+      (pending ? " · وريث قاصر بانتظار الإذن النظامي" : "");
+    const consent = (r) => r.label === minor ? '<span class="cs wait">بانتظار الإذن النظامي</span>' : '<span class="cs ok">موافق</span>';
 
     const total = rows.reduce((s, r) => s + r.halalas, 0);
     $("dRows").innerHTML =
       rows.map((r) =>
         '<tr><td><i class="sw" style="background:' + KCOL[r.kind] + '"></i>' + r.label +
         '</td><td><span dir="ltr">' + ar(r.f[0] + "/" + r.f[1]) + "</span></td><td>" +
-        nf2.format((r.f[0] / r.f[1]) * 100) + "٪</td><td>" + sar2(r.halalas / 100) + "</td></tr>"
+        nf2.format((r.f[0] / r.f[1]) * 100) + "٪</td><td>" + sar2(r.halalas / 100) + "</td><td>" + consent(r) + "</td></tr>"
       ).join("") +
-      '<tr class="total"><td>المجموع</td><td><span dir="ltr">' + ar("1") + "</span></td><td>" + nf2.format(100) + "٪</td><td>" + sar2(total / 100) + "</td></tr>";
+      '<tr class="total"><td>المجموع</td><td><span dir="ltr">' + ar("1") + "</span></td><td>" + nf2.format(100) + "٪</td><td>" + sar2(total / 100) + "</td><td></td></tr>";
 
     $("dBar").innerHTML = rows.map((r) =>
       '<div class="seg" style="flex:' + r.f[0] / r.f[1] + ";background:" + KCOL[r.kind] + '" title="' + r.label + '"></div>'
@@ -366,7 +413,7 @@
   // =====================================================
   //  التبويبات
   // =====================================================
-  const TABS = ["dashboard", "merge", "distribute"];
+  const TABS = ["dashboard", "merge", "invest", "owners"];
   const fitted = {};
 
   function showTab(name) {
@@ -397,6 +444,7 @@
   initDist();
   renderDashboard();
   renderMerge();
+  renderInvest();
   const h = location.hash.slice(1);
   showTab(TABS.includes(h) ? h : "dashboard");
 })();
