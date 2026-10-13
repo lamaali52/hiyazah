@@ -49,6 +49,40 @@
   const COL = { idle: v("idle"), active: v("active"), sel: v("sand"), dim: v("dim"), line: v("map-line") };
 
   const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/";
+
+  // ---------- حركة: قصيرة، لا تحجب النقر، وتحترم تقليل الحركة ----------
+  const calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // عدّ تصاعدي قصير (0.45 ثانية) من القيمة المعروضة إلى الجديدة
+  function countTo(el, value, fmt) {
+    const from = el._v == null ? 0 : el._v;
+    el._v = value;
+    cancelAnimationFrame(el._raf);
+    clearTimeout(el._end);
+    if (calm || from === value) { el.textContent = fmt(value); return; }
+    // الرقم النهائي يُكتب دائماً حتى لو أُوقفت الإطارات في تبويب غير ظاهر
+    el._end = setTimeout(() => { cancelAnimationFrame(el._raf); el.textContent = fmt(value); }, 480);
+    const t0 = performance.now(), dur = 450;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = fmt(from + (value - from) * e);
+      if (k < 1) el._raf = requestAnimationFrame(step);
+    };
+    el._raf = requestAnimationFrame(step);
+  }
+  function heroImage(id, pts, pad) {
+    const lat = pts.map((p) => p[0]), lon = pts.map((p) => p[1]);
+    const s = Math.min(...lat), n = Math.max(...lat), w = Math.min(...lon), e = Math.max(...lon);
+    const pl = (n - s) * pad, po = (e - w) * pad;
+    $(id).style.backgroundImage = "url('" + ESRI + "export?bbox=" + [w - po, s - pl, e + po, n + pl].join(",") +
+      "&bboxSR=4326&imageSR=3857&size=1600,700&format=jpg&f=image')";
+  }
+  // ظهور مرة واحدة عند دخول العنصر إلى الشاشة
+  const io = !calm && "IntersectionObserver" in window
+    ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -10% 0px" })
+    : null;
+  function reveal(sel) {
+    document.querySelectorAll(sel).forEach((el) => { if (io) { el.classList.add("reveal"); io.observe(el); } });
+  }
   function thumbURL(a) {
     const c = centerOf(a), half = Math.max(Math.sqrt(a.area), 160);
     const dLat = half / LAT_M, dLon = (half * 16 / 9) / (111320 * Math.cos((c[0] * Math.PI) / 180));
@@ -111,10 +145,10 @@
     const act = D.assets.filter(isActive);
     const area = idle.reduce((s, a) => s + a.area, 0);
 
-    $("kCount").textContent = nf0.format(idle.length);
-    $("kArea").textContent = m2(area);
+    countTo($("kCount"), idle.length, (v) => nf0.format(Math.round(v)));
+    countTo($("kArea"), area, m2);
     $("kAreaHa").textContent = ha(area);
-    $("kLost").textContent = sar(idle.reduce((s, a) => s + rentOf(a), 0));
+    countTo($("kLost"), idle.reduce((s, a) => s + rentOf(a), 0), sar);
 
     const note = $("activeNote");
     if (act.length) {
@@ -128,7 +162,7 @@
       ? rows.map((a) => {
           const on = isActive(a);
           return '<article class="acard' + (on ? " on" : "") + '">' +
-            '<div class="acard-media" style="background-image:url(\'' + thumbURL(a) + '\')"><span class="tag ' + TAGC[a.type] + '">' + a.type + "</span></div>" +
+            '<div class="acard-media"><div class="acard-img" style="background-image:url(\'' + thumbURL(a) + '\')"></div><span class="tag ' + TAGC[a.type] + '">' + a.type + "</span></div>" +
             '<div class="acard-body"><div class="acard-id">قطعة ' + ar(a.id) + " · " + (a.city || D.merge.city) + '</div><div class="acard-area">' + m2(a.area) + "</div>" +
             '<p class="acard-meta">' + nf0.format(a.heirs) + " ورثة · معطل منذ " + ar(a.since) + "<br>السبب: " + a.reason + "</p>" +
             '<div class="acard-status">' + (on ? "مفعّل عبر حيازة" : "معطل") + "</div></div></article>";
@@ -208,7 +242,7 @@
 
     $("mCount").textContent = nf0.format(s.ids.length);
     $("mHeirs").textContent = nf0.format(s.heirs);
-    $("mArea").textContent = m2(s.area);
+    countTo($("mArea"), s.area, m2);
     $("mAreaHa").textContent = ha(s.area);
 
     const bar = $("mBar");
@@ -223,7 +257,7 @@
     else if (!s.viable) { cls = "bad"; txt = "دون حد الجدوى — ينقص " + m2(D.viabilityMinM2 - s.area); }
     else { cls = "ok"; txt = "كتلة قابلة للطرح"; }
     const st = $("mStatus");
-    st.className = "status " + cls;
+    st.className = "status " + cls + (state.blockFormed ? " formed" : "");
     st.textContent = txt;
 
     $("cBefore").textContent = rs(0) + " لقطعة معطلة";
@@ -268,7 +302,7 @@
         });
         const u = polys.reduce((acc, p) => turf.union(acc, p));
         blockLayer = L.geoJSON(u, {
-          style: { color: COL.line, weight: 4, fill: false },
+          style: { color: COL.line, weight: 4, fill: false, className: "block-outline" },
           interactive: false
         }).addTo(mergeMap);
       } catch (e) { /* الحد الخارجي زخرفي فقط */ }
@@ -301,7 +335,7 @@
 
   function renderInvest() {
     const ids = state.blockFormed ? mergeIds.filter((id) => state.activated[id]) : [];
-    $("blockCount").textContent = nf0.format(ids.length ? 1 : 0) + " كتلة";
+    $("blockCount").textContent = "كتل جاهزة للتأجير: " + nf0.format(ids.length ? 1 : 0);
     if (!ids.length) {
       $("blockCards").innerHTML = '<div class="bk-empty"><b>لا توجد كتل جاهزة بعد</b>كوّن كتلة من شاشة الدمج لتظهر هنا للمطورين والمشغّلين.</div>';
       return;
@@ -312,7 +346,7 @@
     const minors = ids.filter((id) => byId[id].minor).length;
     $("blockCards").innerHTML =
       '<article class="acard on">' +
-        '<div class="acard-media" style="background-image:url(\'' + blockThumb(ids) + '\')"><span class="tag ' + TAGC[type] + '">' + type + "</span></div>" +
+        '<div class="acard-media"><div class="acard-img" style="background-image:url(\'' + blockThumb(ids) + '\')"></div><span class="tag ' + TAGC[type] + '">' + type + "</span></div>" +
         '<div class="acard-body">' +
           '<div class="acard-id">' + D.merge.location + "</div>" +
           '<div class="acard-area">' + D.merge.blockName + "</div>" +
@@ -427,9 +461,14 @@
     }
     if (name === "merge" && mergeMap) {
       mergeMap.invalidateSize();
-      if (!fitted.m) { mergeMap.fitBounds(L.latLngBounds(mergeIds.flatMap((id) => shapeOf(byId[id]))).pad(0.2)); fitted.m = true; }
+      if (!fitted.m) { mergeMap.fitBounds(L.latLngBounds(mergeIds.flatMap((id) => shapeOf(byId[id]))).pad(0.15), { paddingTopLeft: [0, 110] }); fitted.m = true; }
     }
     if (location.hash.slice(1) !== name) history.replaceState(null, "", "#" + name);
+    window.scrollTo({ top: 0, behavior: "instant" });
+    // ما يظهر في الشاشة عند فتح التبويب يظهر فوراً دون انتظار التمرير
+    $("panel-" + name).querySelectorAll(".reveal:not(.in)").forEach((el) => {
+      if (el.getBoundingClientRect().top < window.innerHeight) { el.classList.add("in"); if (io) io.unobserve(el); }
+    });
   }
 
   // ---------- تشغيل ----------
@@ -445,6 +484,17 @@
   renderDashboard();
   renderMerge();
   renderInvest();
+
+  const top = document.querySelector(".top");
+  const onScroll = () => top.classList.toggle("solid", window.scrollY > 40);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+  heroImage("hero-dashboard", D.assets.flatMap(shapeOf), 0.08);
+  heroImage("hero-merge", mergeIds.flatMap((id) => shapeOf(byId[id])), 1.2);
+  heroImage("hero-invest", mergeIds.flatMap((id) => shapeOf(byId[id])), 3);
+  heroImage("hero-owners", shapeOf(byId[mergeIds[0]]), 6);
+  // الظهور عند التمرير للعناصر غير التفاعلية فقط، حتى لا يتحرك زر تحت المؤشر
+  reveal(".map-wrap, .section-head, .principle, .paydirect");
   const h = location.hash.slice(1);
   showTab(TABS.includes(h) ? h : "dashboard");
 })();
