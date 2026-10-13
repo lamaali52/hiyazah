@@ -17,15 +17,15 @@
   const sar2 = (v) => nf2.format(v) + " ريال";
   const nfp = new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 1 });
   const pct = (r) => nfp.format(r * 100) + "٪";
+  const rs = (v) => nf0.format(Math.round(v)) + " ر.س";
   const $ = (id) => document.getElementById(id);
 
   // ---------- بيانات ----------
   const byId = {};
   D.assets.forEach((a) => (byId[a.id] = a));
   const mergeIds = D.merge.rows.flat();
-  const areas = {};
-  mergeIds.forEach((id) => (areas[id] = byId[id].area));
-  const rects = C.mergeLayout(D.merge.rows, areas, D.merge.rowHeightM);
+  const shapes = {};
+  mergeIds.forEach((id) => (shapes[id] = byId[id].shape));
   const rentOf = (a) => a.area * D.rentPerM2[a.type];
 
   const state = {
@@ -37,16 +37,7 @@
 
   // ---------- جغرافيا ----------
   const LAT_M = 110800;
-  function ll(origin, x, y) {
-    return [origin[0] - y / LAT_M, origin[1] + x / (111320 * Math.cos((origin[0] * Math.PI) / 180))];
-  }
-  function rectLL(origin, r) {
-    return [ll(origin, r.x0, r.y0), ll(origin, r.x1, r.y0), ll(origin, r.x1, r.y1), ll(origin, r.x0, r.y1)];
-  }
-  function shapeOf(a) {
-    if (rects[a.id]) return rectLL(D.merge.origin, rects[a.id]);
-    return a.shape;
-  }
+  const shapeOf = (a) => a.shape;
   function centerOf(a) {
     const p = shapeOf(a);
     return [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
@@ -192,11 +183,11 @@
     const ids = state.selected;
     let area = 0, heirs = 0;
     ids.forEach((id) => { area += byId[id].area; heirs += byId[id].heirs; });
-    const contiguous = C.isContiguous(ids, rects);
+    const contiguous = C.isContiguous(ids, shapes);
     const viable = area >= D.viabilityMinM2;
-    const income = area * D.rentPerM2["زراعي"];
-    const mgmt = income * D.managementRate;
-    return { ids, area, heirs, contiguous, viable, ok: viable && contiguous && ids.length > 0, income, feeFirst: income * D.brokerageRate + mgmt, feeYearly: mgmt };
+    const income = area * D.rentPerM2[byId[mergeIds[0]].type];
+    const brokerage = income * D.brokerageRate, mgmt = income * D.managementRate;
+    return { ids, area, heirs, contiguous, viable, ok: viable && contiguous && ids.length > 0, income, brokerage, mgmt, firstYear: brokerage + mgmt };
   }
 
   function renderMerge() {
@@ -235,15 +226,18 @@
     st.className = "status " + cls;
     st.textContent = txt;
 
-    const n = s.ids.length;
-    $("mIncome").textContent = s.ok ? sar(s.income) : "—";
-    $("mIncome").classList.toggle("none", !s.ok);
-    $("cOperator").textContent = s.ok ? "متاح لكتلة واحدة" : n ? "لا يوجد لهذه المساحة" : "—";
-    $("cOperator").classList.toggle("none", !s.ok);
-    $("cDeedsBefore").textContent = n ? nf0.format(n) + " صكوك منفصلة" : "—";
-    $("cDeedsAfter").textContent = n ? nf0.format(n) + " صكوك كما هي" : "—";
-    $("mFee").textContent = s.ok ? sar(s.feeFirst) + " ثم " + sar(s.feeYearly) + " سنوياً" : "—";
-    $("mFeeLabel").textContent = "إيراد حيازة (وساطة " + pct(D.brokerageRate) + " + إدارة " + pct(D.managementRate) + ")";
+    $("cBefore").textContent = rs(0) + " لقطعة معطلة";
+    $("cAfter").textContent = s.ok ? rs(s.income) + " إيجار سنوي ككتلة" : "كتلة متصلة تتجاوز حد الجدوى";
+    $("cAfter").classList.toggle("none", !s.ok);
+    $("revenue").hidden = !s.ok;
+    $("rContract").textContent = rs(s.income);
+    $("rPhase1").textContent = rs(D.blockFeePhase1);
+    $("rBrokerageLbl").textContent = "عمولة وساطة (" + pct(D.brokerageRate) + " من إيجار السنة الأولى)";
+    $("rBrokerage").textContent = rs(s.brokerage);
+    $("rMgmtLbl").textContent = "رسم إدارة أملاك (" + pct(D.managementRate) + " سنوياً، مقترح)";
+    $("rMgmt").textContent = rs(s.mgmt);
+    $("rFirst").textContent = rs(s.firstYear);
+    $("rRecurring").textContent = rs(s.mgmt) + " سنوياً";
 
     $("mForm").hidden = !(s.ok && !state.blockFormed);
     $("mReset").hidden = !(state.blockFormed || s.ids.length);

@@ -44,43 +44,31 @@
     return rows;
   }
 
-  // ---------- تخطيط القطع وتجاورها (بالمتر) ----------
-  function mergeLayout(rows, areaById, rowHeight) {
-    const rects = {};
-    rows.forEach(function (row, r) {
-      let x = 0;
-      row.forEach(function (id) {
-        const w = areaById[id] / rowHeight;
-        rects[id] = { x0: x, x1: x + w, y0: r * rowHeight, y1: (r + 1) * rowHeight };
-        x += w;
-      });
+  // ---------- تجاور القطع ----------
+  // قطعتان متجاورتان إذا تشاركتا ضلعاً (رأسين على الأقل)؛ التلامس عند ركن واحد لا يكفي
+  function shapesAdjacent(a, b) {
+    const eps = 1e-7;
+    let shared = 0;
+    a.forEach(function (p) {
+      if (b.some(function (q) { return Math.abs(p[0] - q[0]) < eps && Math.abs(p[1] - q[1]) < eps; })) shared++;
     });
-    return rects;
+    return shared >= 2;
   }
 
-  function rectsAdjacent(a, b) {
-    const eps = 0.01;
-    const xOverlap = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
-    const yOverlap = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
-    const touchX = Math.abs(a.x1 - b.x0) < eps || Math.abs(b.x1 - a.x0) < eps;
-    const touchY = Math.abs(a.y1 - b.y0) < eps || Math.abs(b.y1 - a.y0) < eps;
-    return (touchX && yOverlap > eps) || (touchY && xOverlap > eps);
-  }
-
-  function isContiguous(ids, rects) {
+  function isContiguous(ids, shapes) {
     if (ids.length < 2) return true;
     const seen = new Set([ids[0]]);
     const queue = [ids[0]];
     while (queue.length) {
       const cur = queue.shift();
       ids.forEach(function (o) {
-        if (!seen.has(o) && rectsAdjacent(rects[cur], rects[o])) { seen.add(o); queue.push(o); }
+        if (!seen.has(o) && shapesAdjacent(shapes[cur], shapes[o])) { seen.add(o); queue.push(o); }
       });
     }
     return seen.size === ids.length;
   }
 
-  const api = { heirShares: heirShares, distribute: distribute, mergeLayout: mergeLayout, isContiguous: isContiguous };
+  const api = { heirShares: heirShares, distribute: distribute, isContiguous: isContiguous };
   root.HIYAZAH_CALC = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

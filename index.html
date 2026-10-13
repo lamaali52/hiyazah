@@ -172,18 +172,24 @@ main{max-width:1360px;margin:0 auto;padding:88px 48px 112px}
 .status.ok{background:var(--active-tint);color:var(--palm);border-inline-start-color:var(--active)}
 
 /* قبل / بعد */
-.compare{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line)}
-.cmp-col{padding:16px 18px}
-.cmp-col + .cmp-col{border-inline-start:1px solid var(--line)}
-.cmp-col.after{background:var(--sand)}
-.cmp-h{font-family:var(--display);font-weight:700;font-size:15px;padding-bottom:10px;margin-bottom:12px;border-bottom:2px solid var(--idle)}
-.cmp-col.after .cmp-h{border-bottom-color:var(--active)}
-.cmp-k{font-size:13px;color:var(--date-soft)}
-.cmp-v{font-family:var(--display);font-weight:600;font-size:16px;font-variant-numeric:tabular-nums;margin-bottom:12px}
-.cmp-v:last-child{margin-bottom:0}
-.cmp-v.money{font-size:22px;font-weight:700}
-.cmp-v.none{color:var(--date-soft);font-weight:500}
-.fee-row{margin-top:16px}
+.cmp-h2{font-family:var(--display);font-size:13px;font-weight:600;color:var(--date-soft)}
+.beforeafter{margin:8px 0 0;font-family:var(--display);font-weight:700;font-size:20px;line-height:1.5}
+.ba-before{color:var(--idle)}
+.ba-after{color:var(--palm)}
+.ba-after.none{color:var(--date-soft);font-weight:500;font-size:16px}
+.revenue{margin:18px 0 0;border-top:1px solid var(--line);padding-top:12px}
+.revenue dl{margin:0}
+.rent-note{margin:2px 0 0;font-size:13px;color:var(--date-soft)}
+.phase{margin-top:16px;border:1px solid var(--line);padding:10px 14px 8px;background:var(--paper)}
+.phase-h{font-family:var(--display);font-weight:700;font-size:14px;color:var(--palm);padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.prop{display:inline-block;font-size:11px;font-weight:600;padding:0 6px;margin-inline-start:4px;background:var(--sand-deep);color:var(--date)}
+.revenue[hidden]{display:none}
+.rv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px;padding:5px 0}
+.rv dt{color:var(--date-soft)}
+.rv dd{margin:0;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rv.total{border-top:2px solid var(--date);margin-top:6px;padding-top:10px}
+.rv.total dt{color:var(--date);font-weight:600}
+.rv.total dd{font-size:22px;font-weight:700}
 
 .btn{display:block;width:100%;border:0;padding:15px;cursor:pointer;background:var(--palm);color:var(--on-dark);font-family:var(--display);font-weight:600;font-size:16px;border-radius:0;margin-top:18px}
 .btn.key{background:var(--gold);color:var(--date)}
@@ -299,7 +305,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 <!-- ===================== ٢ — الدمج ===================== -->
 <section id="panel-merge" class="panel" role="tabpanel" aria-labelledby="tab-merge" hidden>
   <div class="hero"><div class="hero-in">
-    <div class="eyebrow">الدمج التعاقدي · <span id="mergeCity">عنيزة</span> · نظم المعلومات الجغرافية</div>
+    <div class="eyebrow">الدمج التعاقدي · <span id="mergeCity">بريدة</span> · نظم المعلومات الجغرافية</div>
     <h1>ست قطع متجاورة، لا تكفي أيٌّ منها وحدها</h1>
     <p>اختر القطع لتكوين كتلة واحدة تتجاوز حد جدوى المشغّل، دون أن يُمس أي صك.</p>
   </div></div>
@@ -316,32 +322,40 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
           <div class="big" id="mArea">٠ م²</div>
           <div class="big-sub" id="mAreaHa"></div>
           <div class="bar"><div class="bar-fill" id="mBar"></div></div>
-          <div class="bar-th"><span>حد جدوى المشغّل</span><span id="mThreshold"></span></div>
+          <div class="bar-th"><span>حد جدوى المطور</span><span id="mThreshold"></span></div>
           <div class="status neutral" id="mStatus"></div>
         </div>
         <div class="side-block">
-          <div class="compare">
-            <div class="cmp-col">
-              <div class="cmp-h">قبل الدمج</div>
-              <div class="cmp-k">الدخل السنوي</div><div class="cmp-v money">٠ ريال</div>
-              <div class="cmp-k">المشغّل</div><div class="cmp-v">لا يوجد</div>
-              <div class="cmp-k">الصكوك</div><div class="cmp-v" id="cDeedsBefore">—</div>
+          <div class="cmp-h2">قبل الدمج ← بعد الدمج</div>
+          <p class="beforeafter" id="beforeAfter"><span class="ba-before" id="cBefore">٠ ر.س لقطعة معطلة</span> ← <span class="ba-after" id="cAfter"></span></p>
+          <div class="revenue" id="revenue" hidden>
+            <dl class="rent">
+              <div class="rv"><dt>الإيجار السنوي للكتلة</dt><dd id="rContract"></dd></div>
+            </dl>
+            <p class="rent-note">يدفعه المشغّل لكل مالك حصته مباشرة، ولا يمر عبر المنصة.</p>
+            <div class="phase">
+              <div class="phase-h">المرحلة ١ — نموذج أولي، دون ترخيص</div>
+              <dl>
+                <div class="rv"><dt>رسم ثابت لكل كتلة يدفعه المطور <span class="prop">مقترح</span></dt><dd id="rPhase1"></dd></div>
+              </dl>
             </div>
-            <div class="cmp-col after">
-              <div class="cmp-h">بعد الدمج</div>
-              <div class="cmp-k">الدخل السنوي</div><div class="cmp-v money" id="mIncome">—</div>
-              <div class="cmp-k">المشغّل</div><div class="cmp-v" id="cOperator">—</div>
-              <div class="cmp-k">الصكوك</div><div class="cmp-v" id="cDeedsAfter">—</div>
+            <div class="phase">
+              <div class="phase-h">المرحلة ٢ — بعد الترخيص أو مع مكتب مرخص</div>
+              <dl>
+                <div class="rv"><dt id="rBrokerageLbl">عمولة وساطة</dt><dd id="rBrokerage"></dd></div>
+                <div class="rv"><dt id="rMgmtLbl">رسم إدارة أملاك</dt><dd id="rMgmt"></dd></div>
+                <div class="rv total"><dt>إيراد المنصة في السنة الأولى</dt><dd id="rFirst"></dd></div>
+                <div class="rv"><dt>ثم سنوياً</dt><dd id="rRecurring"></dd></div>
+              </dl>
             </div>
           </div>
-          <div class="row fee-row"><span id="mFeeLabel">إيراد حيازة</span><b id="mFee">—</b></div>
           <button type="button" class="btn key" id="mForm" hidden>تكوين الكتلة</button>
           <button type="button" class="btn ghost" id="mReset" hidden>إعادة الضبط</button>
         </div>
       </aside>
       <div>
         <div id="mergeMap" class="map map-tall"></div>
-        <p class="map-note">الدمج تعاقدي — كل صك يبقى كما هو</p>
+        <p class="map-note">الدمج تشغيلي فقط، والصكوك الشرعية تبقى مستقلة ومحفوظة لأصحابها.</p>
       </div>
     </div>
   </main>
