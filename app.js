@@ -341,16 +341,12 @@
   }
 
   function renderDist() {
-    const gross = state.gross;
-    // السنة الأولى: عمولة الوساطة + رسوم الإدارة السنوية
-    const fee = (Math.round(gross * D.brokerageRate * 100) + Math.round(gross * D.managementRate * 100)) / 100;
-    const net = Math.round((gross - fee) * 100) / 100;
-    $("dFeeLabel").textContent = "رسوم السنة الأولى (وساطة " + pct(D.brokerageRate) + " + إدارة " + pct(D.managementRate) + ")";
+    // المشغّل يدفع الإيجار كاملاً، وتُحسب الأنصبة من المبلغ كله
+    const gross = Math.round(state.gross * 100) / 100;
     $("dGrossOut").textContent = sar2(gross);
-    $("dFee").textContent = "− " + sar2(fee);
-    $("dNet").textContent = sar2(net);
+    $("dFeeNote").textContent = "رسم إدارة " + pct(D.managementRate) + " في المرحلة الثانية، إن اعتُمد، بفاتورة مستقلة";
 
-    const rows = C.distribute(Math.round(net * 100), C.heirShares(state.mix));
+    const rows = C.distribute(Math.round(gross * 100), C.heirShares(state.mix));
     $("dHeirCount").textContent = nf0.format(rows.length) + " ورثة";
 
     const total = rows.reduce((s, r) => s + r.halalas, 0);
