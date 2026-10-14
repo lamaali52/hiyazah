@@ -364,6 +364,29 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 .btn.key:disabled:hover{background:var(--gold);color:var(--date)}
 .next-row{display:flex;justify-content:flex-end;margin-top:40px}
 .btn.next{width:auto;margin:0;padding:14px 30px;font-size:16px}
+/* التسجيل الذاتي للملاك */
+.paydirect{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.btn.reg-open{width:auto;margin:0;padding:12px 26px;background:var(--gold);color:var(--date);font-size:16px}
+.btn.reg-open:hover{background:var(--on-dark);color:var(--date)}
+.reg-card{margin:-8px 0 32px}
+.reg-card[hidden]{display:none}
+.reg-form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:6px 14px;align-items:start}
+.reg-form .field{margin-bottom:6px}
+.reg-submit{grid-column:1/-1;width:auto;justify-self:start;margin-top:4px;padding:12px 28px}
+.reg-hint{margin:2px 0 0;font-size:12px;color:var(--date-soft)}
+.linkish{background:none;border:0;padding:0;color:var(--palm);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
+.reg-err{margin:2px 0 0;min-height:18px;font-size:12px;font-weight:600;color:var(--idle)}
+.reg-result{margin-top:14px;padding:14px 18px;border-radius:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.reg-result[hidden]{display:none}
+.reg-result.ok{background:var(--palm-tint);color:var(--palm)}
+.reg-result.no{background:var(--sand);color:var(--date)}
+.reg-result b{font-family:var(--display);font-size:17px}
+.reg-result small{display:block;color:var(--date-soft);font-size:13px;margin-top:2px}
+.reg-result .btn{width:auto;margin:0;padding:10px 22px}
+@media (max-width:960px){.reg-form{grid-template-columns:1fr 1fr}.reg-deed{grid-column:1/-1}}
+.reg-form input[type=text]{font:inherit;padding:10px 16px;border:1px solid var(--line);background:#fff;color:var(--date);border-radius:14px;width:100%;transition:border-color .25s var(--ease)}
+.reg-form input[type=text]:hover{border-color:var(--date)}
+.reg-form input[type=text]:focus-visible{outline:2px solid var(--palm);outline-offset:1px}
 </style>
 </head>
 <body>
@@ -511,7 +534,26 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
     <p>حصص تُحسب آلياً وفق وثيقة حصر الورثة. يدفع المشغّل لكل مالك حصته مباشرة، وحيازة لا تستلم أموال الإيجار.</p>
   </div></div>
   <main>
-    <div class="paydirect overlap"><b>المشغّل يدفع لكل مالك حصته مباشرة — حيازة لا تستلم الأموال</b></div>
+    <div class="paydirect overlap"><b>المشغّل يدفع لكل مالك حصته مباشرة — حيازة لا تستلم الأموال</b><button type="button" class="btn reg-open" id="regOpen" aria-expanded="false" aria-controls="regCard">سجّل أرضك ←</button></div>
+    <section class="card reg-card" id="regCard" hidden aria-labelledby="regTitle">
+      <div class="block-head"><span id="regTitle">سجّل أرضك المعطلة</span><span class="sub">نموذج تجريبي — لا تُحفظ البيانات</span></div>
+      <div class="card-body">
+        <form id="regForm" class="reg-form" novalidate>
+          <div class="field reg-deed">
+            <label for="rDeed">رقم الصك</label>
+            <input type="text" id="rDeed" inputmode="numeric" autocomplete="off" required>
+            <p class="reg-hint">جرّب: <button type="button" class="linkish" data-deed="410238043">٤١٠٢٣٨٠٤٣</button> (شمال بريدة) أو <button type="button" class="linkish" data-deed="312074031">٣١٢٠٧٤٠٣١</button> (عيون الجواء)</p>
+            <p class="reg-err" id="rDeedErr" role="alert"></p>
+          </div>
+          <div class="field"><label for="rArea">المساحة (م²)</label><input type="number" id="rArea" min="1" step="1" required></div>
+          <div class="field"><label for="rCity">المحافظة</label><select id="rCity" required></select></div>
+          <div class="field"><label for="rReason">سبب التعطل</label><select id="rReason" required></select></div>
+          <div class="field"><label for="rHeirs">عدد الورثة</label><input type="number" id="rHeirs" min="1" step="1" required></div>
+          <button type="submit" class="btn key reg-submit">تحقق من قابلية الدمج</button>
+        </form>
+        <div class="reg-result" id="regResult" role="status" aria-live="polite" hidden></div>
+      </div>
+    </section>
     <div class="section-head"><h2 class="section-title">حصص الكتلة قطعةً قطعة</h2><span class="section-count" id="bsCount"></span></div>
     <div id="blockShares"></div>
     <div class="section-head calc-head"><h2 class="section-title">حاسبة الأنصبة لقطعة واحدة</h2><span class="section-count">غيّر تركيبة الورثة لترى الأثر</span></div>

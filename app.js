@@ -456,6 +456,75 @@
       nf0.format(grandHeirs) + " ورثة</span><b>" + sar2(grandHal / 100) + "</b><span>= عقد الكتلة السنوي، يدفعه المشغّل لكل وارث حصته مباشرة</span></div>";
   }
 
+  // =====================================================
+  //  التسجيل الذاتي: رقم الصك يحدد القطعة، ثم فحص التجاور الفعلي (ضلع مشترك) مع الأصول المعطلة
+  // =====================================================
+  const allShapes = {};
+  D.assets.forEach((a) => (allShapes[a.id] = a.shape));
+  function neighboursOf(id) {
+    const seen = new Set([id]), queue = [id];
+    while (queue.length) {
+      const cur = queue.shift();
+      D.assets.forEach((o) => {
+        if (!seen.has(o.id) && !isActive(o) && C.isContiguous([cur, o.id], allShapes)) { seen.add(o.id); queue.push(o.id); }
+      });
+    }
+    seen.delete(id);
+    return Array.from(seen);
+  }
+  const latinDigits = (v) => String(v).replace(/[٠-٩]/g, (c) => "٠١٢٣٤٥٦٧٨٩".indexOf(c)).replace(/\D/g, "");
+  let regHighlight = null;
+
+  function initRegister() {
+    const cities = Array.from(new Set(D.assets.map((a) => a.city)));
+    $("rCity").innerHTML = '<option value="">اختر</option>' + cities.map((c) => "<option>" + c + "</option>").join("");
+    $("rReason").innerHTML = '<option value="">اختر</option>' + D.reasons.map((r) => "<option>" + r + "</option>").join("");
+    $("regOpen").addEventListener("click", () => {
+      const card = $("regCard"), open = card.hidden;
+      card.hidden = !open;
+      $("regOpen").setAttribute("aria-expanded", String(open));
+      if (open) $("rDeed").focus();
+    });
+    document.querySelectorAll("[data-deed]").forEach((b) => b.addEventListener("click", () => { $("rDeed").value = b.dataset.deed; $("rDeedErr").textContent = ""; }));
+    $("regForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const deed = latinDigits($("rDeed").value);
+      const a = D.assets.find((x) => x.deed === deed);
+      const res = $("regResult");
+      if (!a) {
+        $("rDeedErr").textContent = deed ? "لم نجد هذا الصك في طبقة المخطط التجريبية — جرّب أحد الأمثلة" : "أدخل رقم الصك";
+        res.hidden = true;
+        return;
+      }
+      $("rDeedErr").textContent = "";
+      const near = neighboursOf(a.id);
+      const plot = "صك " + ar(deed) + " · قطعة " + ar(a.id) + " · " + a.city;
+      if (isActive(a)) {
+        res.className = "reg-result ok";
+        res.innerHTML = "<div><b>أرضك مفعّلة ضمن " + D.merge.blockName + "</b><small>" + plot + "</small></div>";
+      } else if (near.length) {
+        res.className = "reg-result ok";
+        res.innerHTML = "<div><b>أرضك ضمن فرصة دمج: " + nf0.format(near.length) + " قطع متجاورة حولك</b><small>" + plot + "</small></div>" +
+          '<button type="button" class="btn key" id="regMap">شاهدها على الخريطة ←</button>';
+        $("regMap").addEventListener("click", () => showOnMap([a.id].concat(near)));
+      } else {
+        res.className = "reg-result no";
+        res.innerHTML = "<div><b>لا توجد قطع معطلة متجاورة حولها حالياً — سنخطرك إن تغيّر ذلك</b><small>" + plot + "</small></div>";
+      }
+      res.hidden = false;
+    });
+  }
+
+  function showOnMap(ids) {
+    showTab("dashboard");
+    if (!dashMap) return;
+    if (regHighlight) dashMap.removeLayer(regHighlight);
+    regHighlight = L.layerGroup(ids.map((id) => L.polygon(shapeOf(byId[id]), { color: COL.sel, weight: 3, fill: false, interactive: false }))).addTo(dashMap);
+    $("dashMap").scrollIntoView({ block: "center", behavior: calm ? "auto" : "smooth" });
+    dashMap.invalidateSize();
+    dashMap.fitBounds(L.latLngBounds(ids.flatMap((id) => shapeOf(byId[id]))).pad(1.2));
+  }
+
   function renderDist() {
     // المشغّل يدفع الإيجار كاملاً، وتُحسب الأنصبة من المبلغ كله
     const gross = Math.round(state.gross * 100) / 100;
@@ -522,6 +591,7 @@
   document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.go)));
   $("mReset").addEventListener("click", resetMerge);
   initDist();
+  initRegister();
   renderDashboard();
   renderMerge();
   renderInvest();
@@ -535,7 +605,7 @@
   heroImage("hero-invest", mergeIds.flatMap((id) => shapeOf(byId[id])), 3);
   heroImage("hero-owners", shapeOf(byId[mergeIds[0]]), 6);
   // الظهور عند التمرير للعناصر غير التفاعلية فقط، حتى لا يتحرك زر تحت المؤشر
-  reveal(".map-wrap, .section-head, .principle, .paydirect");
+  reveal(".map-wrap, .section-head, .principle");
   const h = location.hash.slice(1);
   showTab(TABS.includes(h) ? h : "dashboard");
 })();
