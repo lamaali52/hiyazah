@@ -336,6 +336,20 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 .bk-empty{grid-column:1/-1}
 @media (max-width:960px){.cards.blocks .acard{flex-direction:column}.cards.blocks .acard-media{min-height:200px}}
 
+/* حصص الكتلة: كل قطعة بإيجارها وورثتها، ومجموع يُرجع إلى عقد الكتلة */
+.bs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.bs-card .block-head b{font-family:var(--display);font-variant-numeric:tabular-nums}
+.bs-card .card-body{padding:10px 18px 14px}
+.bs-card .tbl{min-width:0;font-size:14px}
+.bs-card .tbl th{padding:8px 8px}
+.bs-card .tbl td{padding:7px 8px}
+.bs-total{margin-top:20px;background:var(--date);color:var(--on-dark);border-radius:var(--r-card);padding:16px 24px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 24px}
+.bs-total b{font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums}
+.bs-total span{color:var(--on-dark-soft);font-size:14px}
+.bs-empty{padding:40px 24px;text-align:center;color:var(--date-soft);border:1px dashed var(--line);border-radius:var(--r-card);background:var(--paper)}
+.bs-empty b{display:block;font-family:var(--display);color:var(--date);font-size:18px;margin-bottom:6px}
+.calc-head{margin-top:56px}
+@media (max-width:960px){.bs-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -475,6 +489,9 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
   </div></div>
   <main>
     <div class="paydirect overlap"><b>المشغّل يدفع لكل مالك حصته مباشرة — حيازة لا تستلم الأموال</b></div>
+    <div class="section-head"><h2 class="section-title">حصص الكتلة قطعةً قطعة</h2><span class="section-count" id="bsCount"></span></div>
+    <div id="blockShares"></div>
+    <div class="section-head calc-head"><h2 class="section-title">حاسبة الأنصبة لقطعة واحدة</h2><span class="section-count">غيّر تركيبة الورثة لترى الأثر</span></div>
     <div class="dist-grid">
       <div class="card">
         <div class="block-head"><span>الورثة من وثيقة حصر الورثة</span><span class="sub">عبر ناجز</span></div>

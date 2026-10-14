@@ -334,6 +334,7 @@
   }
 
   function renderInvest() {
+    renderBlockShares();
     const ids = state.blockFormed ? mergeIds.filter((id) => state.activated[id]) : [];
     $("blockCount").textContent = "كتل جاهزة للتأجير: " + nf0.format(ids.length ? 1 : 0);
     if (!ids.length) {
@@ -414,6 +415,39 @@
     const g = parseFloat($("dGross").value);
     state.gross = isFinite(g) && g >= 0 ? g : 0;
     renderDist();
+  }
+
+  // حصص الكتلة المكوّنة: إيجار كل قطعة = مساحتها × إيجار المتر، وأنصبة ورثتها بالهللة من إيجارها هي
+  function renderBlockShares() {
+    const ids = state.blockFormed ? mergeIds.filter((id) => state.activated[id]) : [];
+    if (!ids.length) {
+      $("bsCount").textContent = "";
+      $("blockShares").innerHTML = '<div class="bs-empty"><b>لم تتكوّن كتلة بعد</b>كوّن الكتلة من شاشة الدمج لتظهر هنا حصة كل وريث في كل قطعة.</div>';
+      return;
+    }
+    let grandHal = 0, grandArea = 0, grandHeirs = 0;
+    const cards = ids.map((id) => {
+      const a = byId[id];
+      const rentHal = Math.round(rentOf(a) * 100);
+      const rows = C.distribute(rentHal, C.heirShares(a.mix));
+      const sumHal = rows.reduce((t, r) => t + r.halalas, 0);
+      grandHal += sumHal; grandArea += a.area; grandHeirs += rows.length;
+      return '<div class="card bs-card" data-plot="' + id + '" data-rent="' + rentHal + '" data-sum="' + sumHal + '">' +
+        '<div class="block-head"><span>قطعة ' + ar(id) + '</span><span class="sub">' +
+        m2(a.area) + " × " + nf0.format(D.rentPerM2[a.type]) + " ريال = <b>" + sar2(rentHal / 100) + "</b></span></div>" +
+        '<div class="card-body"><table class="tbl"><thead><tr><th>الوارث</th><th>النصيب</th><th>النسبة</th><th>المبلغ السنوي</th><th>الموافقة</th></tr></thead><tbody>' +
+        rows.map((r) =>
+          "<tr><td>" + r.label + '</td><td><span dir="ltr">' + ar(r.f[0] + "/" + r.f[1]) + "</span></td><td>" +
+          nf2.format((r.f[0] / r.f[1]) * 100) + "٪</td><td>" + sar2(r.halalas / 100) + "</td><td>" +
+          (r.label === a.minor ? '<span class="cs wait">بانتظار الإذن النظامي</span>' : '<span class="cs ok">موافق</span>') + "</td></tr>"
+        ).join("") +
+        '<tr class="total"><td>مجموع القطعة</td><td><span dir="ltr">' + ar("1") + "</span></td><td>" + nf2.format(100) + "٪</td><td>" + sar2(sumHal / 100) + "</td><td></td></tr>" +
+        "</tbody></table></div></div>";
+    });
+    $("bsCount").textContent = nf0.format(ids.length) + " قطع · " + nf0.format(grandHeirs) + " ورثة";
+    $("blockShares").innerHTML = '<div class="bs-grid">' + cards.join("") + "</div>" +
+      '<div class="bs-total" id="bsTotal" data-sum="' + grandHal + '"><span>المجموع الكلي للكتلة: ' + nf0.format(ids.length) + " قطع · " + m2(grandArea) + " · " +
+      nf0.format(grandHeirs) + " ورثة</span><b>" + sar2(grandHal / 100) + "</b><span>= عقد الكتلة السنوي، يدفعه المشغّل لكل وارث حصته مباشرة</span></div>";
   }
 
   function renderDist() {
