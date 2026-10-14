@@ -252,10 +252,10 @@
 
     let cls, txt;
     if (state.blockFormed) { cls = "ok"; txt = "تكوّنت الكتلة — جاهزة للطرح على مشغّل"; }
-    else if (!s.ids.length) { cls = "neutral"; txt = "اختر القطع من الخريطة أو من القائمة"; }
+    else if (!s.ids.length) { cls = "neutral"; txt = "اختر القطع المتجاورة من الخريطة أو من القائمة"; }
     else if (!s.contiguous) { cls = "warn"; txt = "القطع المحددة غير متجاورة"; }
-    else if (!s.viable) { cls = "bad"; txt = "دون حد الجدوى — ينقص " + m2(D.viabilityMinM2 - s.area); }
-    else { cls = "ok"; txt = "كتلة قابلة للطرح"; }
+    else if (!s.viable) { cls = "bad"; txt = "أضف " + m2(D.viabilityMinM2 - s.area) + " للوصول لحد الجدوى"; }
+    else { cls = "ok"; txt = "كتلة قابلة للطرح — اضغط «تكوين الكتلة»"; }
     const st = $("mStatus");
     st.className = "status " + cls + (state.blockFormed ? " formed" : "");
     st.textContent = txt;
@@ -273,7 +273,13 @@
     $("rFirst").textContent = rs(s.firstYear);
     $("rRecurring").textContent = rs(s.mgmt) + " سنوياً";
 
-    $("mForm").hidden = !(s.ok && !state.blockFormed);
+    const fb = $("mForm");
+    fb.disabled = !s.ok && !state.blockFormed;
+    fb.textContent = state.blockFormed ? "شاهد الفرصة ←" : "تكوين الكتلة";
+    // دليل الخطوات: المنجز بالأخضر والحالي مُبرز
+    const done = [s.ids.length > 0 && s.contiguous, s.ok, state.blockFormed];
+    const cur = done.indexOf(false);
+    done.forEach((d, i) => { $("step" + (i + 1)).className = d ? "done" : i === cur ? "current" : ""; });
     $("mReset").hidden = !(state.blockFormed || s.ids.length);
 
     if (mergeMap) {
@@ -512,7 +518,8 @@
   dashMap = makeMap($("dashMap"));
   if (dashMap) dashLayer = L.layerGroup().addTo(dashMap);
   buildMergeMap();
-  $("mForm").addEventListener("click", formBlock);
+  $("mForm").addEventListener("click", () => (state.blockFormed ? showTab("invest") : formBlock()));
+  document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.go)));
   $("mReset").addEventListener("click", resetMerge);
   initDist();
   renderDashboard();

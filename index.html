@@ -350,6 +350,20 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 .bs-empty b{display:block;font-family:var(--display);color:var(--date);font-size:18px;margin-bottom:6px}
 .calc-head{margin-top:56px}
 @media (max-width:960px){.bs-grid{grid-template-columns:1fr}}
+/* رحلة المستخدم: دليل الخطوات، زر التكوين الظاهر دائماً، وأزرار الخطوة التالية */
+.steps{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.steps li{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 10px;border-radius:999px;background:rgba(242,235,221,.12);color:var(--on-dark-soft);font-family:var(--display);font-size:14px;font-weight:500;transition:background-color .35s var(--ease),color .35s var(--ease)}
+.steps li b{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:rgba(242,235,221,.2);font-size:13px;transition:background-color .35s var(--ease)}
+.steps li.arrow{background:none;padding:0;color:var(--on-dark-soft)}
+.steps li.done{color:var(--on-dark)}
+.steps li.done b{background:var(--active);color:#fff}
+.steps li.current{background:var(--sand);color:var(--date);font-weight:600}
+.steps li.current b{background:var(--date);color:var(--on-dark)}
+.big-btn{padding:16px;font-size:18px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.key:disabled:hover{background:var(--gold);color:var(--date)}
+.next-row{display:flex;justify-content:flex-end;margin-top:40px}
+.btn.next{width:auto;margin:0;padding:14px 30px;font-size:16px}
 </style>
 </head>
 <body>
@@ -379,7 +393,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 <!-- ===================== ١ — لوحة الرصد ===================== -->
 <section id="panel-dashboard" class="panel" role="tabpanel" aria-labelledby="tab-dashboard">
   <div class="hero"><div class="hero-bg" id="hero-dashboard"></div><div class="hero-in">
-    <div class="eyebrow">للجهة الحكومية · الحل أ — الرصد والتصنيف</div>
+    <div class="eyebrow">لوحة الرصد — الجهة الحكومية · الحل أ: الرصد والتصنيف</div>
     <h1 id="scopeTitle">منطقة القصيم</h1>
     <p>أمانة منطقة القصيم والهيئة العامة للعقار: لوحة رصد تدعم القرار بمعرفة حجم الأصول المعطلة وأسبابها.</p>
     <div id="activeNote" class="active-note" hidden></div>
@@ -402,15 +416,23 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
       <div class="section-head"><h2 class="section-title">سجل الأصول</h2><span class="section-count" id="assetCount"></span></div>
       <div class="cards" id="assetCards"></div>
     </div>
+    <div class="next-row"><button type="button" class="btn next" data-go="merge">ابدأ الدمج ←</button></div>
   </main>
 </section>
 
 <!-- ===================== ٢ — الدمج ===================== -->
 <section id="panel-merge" class="panel" role="tabpanel" aria-labelledby="tab-merge" hidden>
   <div class="hero"><div class="hero-bg" id="hero-merge"></div><div class="hero-in">
-    <div class="eyebrow">محرك الدمج · الحل ب — الدمج الافتراضي · <span id="mergeCity">بريدة</span></div>
+    <div class="eyebrow">الدمج — فريق حيازة · الحل ب: الدمج الافتراضي · <span id="mergeCity">بريدة</span></div>
     <h1>ضم القطع المتجاورة في كتلة استثمارية واحدة</h1>
     <p>تشغيل كل قطعة منفردة غير مجدٍ، فيبقى دخلها صفراً. الدمج يضمها بموافقة الملاك، وإذا رفض مالك، يعيد المحرك تشكيل الكتلة حول قطعته.</p>
+    <ol class="steps" id="steps" aria-label="خطوات الدمج">
+      <li id="step1"><b>١</b>اختر القطع المتجاورة</li>
+      <li class="arrow" aria-hidden="true">←</li>
+      <li id="step2"><b>٢</b>تجاوز حد الجدوى</li>
+      <li class="arrow" aria-hidden="true">←</li>
+      <li id="step3"><b>٣</b>كوّن الكتلة</li>
+    </ol>
   </div></div>
   <main>
     <div class="merge-grid overlap">
@@ -426,6 +448,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
           <div class="big-sub" id="mAreaHa"></div>
           <div class="bar"><div class="bar-fill" id="mBar"></div></div>
           <div class="bar-th"><span>حد جدوى المطور</span><span id="mThreshold"></span></div>
+          <button type="button" class="btn key big-btn" id="mForm" disabled>تكوين الكتلة</button>
           <div class="status neutral" id="mStatus"></div>
         </div>
         <div class="side-block">
@@ -450,7 +473,6 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
               </dl>
             </div>
           </div>
-          <button type="button" class="btn key" id="mForm" hidden>تكوين الكتلة</button>
           <button type="button" class="btn ghost" id="mReset" hidden>إعادة الضبط</button>
         </div>
       </aside>
@@ -469,7 +491,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
 <!-- ===================== ٣ — فرص الاستثمار ===================== -->
 <section id="panel-invest" class="panel" role="tabpanel" aria-labelledby="tab-invest" hidden>
   <div class="hero"><div class="hero-bg" id="hero-invest"></div><div class="hero-in">
-    <div class="eyebrow">للمطور والمشغّل · الحل ج — عقود تشغيل موحّدة</div>
+    <div class="eyebrow">فرص الاستثمار — المطوّر والمشغّل · الحل ج: عقود تشغيل موحّدة</div>
     <h1>كتلة متصلة بدل التفاوض مع عشرات الملاك</h1>
     <p>لكل صك عقد إيجار بشروط متطابقة، يوقّعه المالك والمشغّل، ويوثّقه شريك مرخّص عبر شبكة إيجار.</p>
     <div class="active-note" id="blockCount"></div>
@@ -477,13 +499,14 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
   <main>
     <div class="cards blocks overlap" id="blockCards"></div>
     <div class="principle"><span class="principle-k">مبدؤنا</span>وسيط تقني: ننسّق ونجهّز المسودات، ولا نبرم العقود ولا ندير الأملاك</div>
+    <div class="next-row"><button type="button" class="btn next" data-go="owners">بوابة الملاك ←</button></div>
   </main>
 </section>
 
 <!-- ===================== ٤ — بوابة الملاك ===================== -->
 <section id="panel-owners" class="panel" role="tabpanel" aria-labelledby="tab-owners" hidden>
   <div class="hero"><div class="hero-bg" id="hero-owners"></div><div class="hero-in">
-    <div class="eyebrow">للمالك والوريث · الحل د — حساب آلي للحصص</div>
+    <div class="eyebrow">بوابة الملاك — المالك والوريث · الحل د: حساب آلي للحصص</div>
     <h1>دخل سنوي دون التفريط في الصك</h1>
     <p>حصص تُحسب آلياً وفق وثيقة حصر الورثة. يدفع المشغّل لكل مالك حصته مباشرة، وحيازة لا تستلم أموال الإيجار.</p>
   </div></div>
@@ -538,6 +561,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--palm);outline-o
       </div>
     </div>
     <div class="principle"><span class="principle-k">مبدؤنا</span>وسيط تقني: ننسّق ونجهّز المسودات، ولا نبرم العقود ولا ندير الأملاك</div>
+    <div class="next-row"><button type="button" class="btn next" data-go="dashboard">العودة إلى لوحة الرصد ←</button></div>
   </main>
 </section>
 
